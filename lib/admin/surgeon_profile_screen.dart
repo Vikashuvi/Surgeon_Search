@@ -99,7 +99,7 @@ class _SurgeonProfileScreenState extends State<SurgeonProfileScreen> {
           SliverAppBar(
             expandedHeight: 340,
             pinned: true,
-            backgroundColor: const Color(0xFF1E3A5F),
+            backgroundColor: const Color(0xFF117BDD),
             leading: IconButton(
               onPressed: () => Navigator.pop(context),
               icon: Container(
@@ -142,7 +142,7 @@ class _SurgeonProfileScreenState extends State<SurgeonProfileScreen> {
                     padding: EdgeInsets.all(50),
                     child: Center(
                       child: CircularProgressIndicator(
-                        color: Color(0xFF1E3A5F),
+                        color: Color(0xFF117BDD),
                       ),
                     ),
                   )
@@ -169,7 +169,7 @@ class _SurgeonProfileScreenState extends State<SurgeonProfileScreen> {
         gradient: LinearGradient(
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
-          colors: [Color(0xFF1E3A5F), Color(0xFF2E5077), Color(0xFF3D6591)],
+          colors: [Color(0xFF117BDD), Color(0xFF117BDD), Color(0xFF00AFF4)],
         ),
       ),
       child: SafeArea(
@@ -291,7 +291,7 @@ class _SurgeonProfileScreenState extends State<SurgeonProfileScreen> {
               icon: const Icon(Icons.refresh),
               label: const Text('Retry'),
               style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF1E3A5F),
+                backgroundColor: const Color(0xFF117BDD),
                 foregroundColor: Colors.white,
                 padding: const EdgeInsets.symmetric(
                   horizontal: 24,
@@ -344,7 +344,7 @@ class _SurgeonProfileScreenState extends State<SurgeonProfileScreen> {
           _buildSectionCard(
             title: 'Contact Information',
             icon: Icons.contact_phone,
-            iconColor: const Color(0xFF1E3A5F),
+            iconColor: const Color(0xFF117BDD),
             children: [
               if (email.isNotEmpty)
                 _buildInfoRow(Icons.email_outlined, 'Email', email),
@@ -444,7 +444,7 @@ class _SurgeonProfileScreenState extends State<SurgeonProfileScreen> {
                             style: const TextStyle(
                               fontSize: 15,
                               fontWeight: FontWeight.w600,
-                              color: Color(0xFF1E3A5F),
+                              color: Color(0xFF117BDD),
                             ),
                           ),
                         if (organization.toString().isNotEmpty) ...[
@@ -679,7 +679,7 @@ class _SurgeonProfileScreenState extends State<SurgeonProfileScreen> {
                 style: const TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.bold,
-                  color: Color(0xFF1E3A5F),
+                  color: Color(0xFF117BDD),
                 ),
               ),
             ],
@@ -718,7 +718,7 @@ class _SurgeonProfileScreenState extends State<SurgeonProfileScreen> {
                   value,
                   style: const TextStyle(
                     fontSize: 15,
-                    color: Color(0xFF1E3A5F),
+                    color: Color(0xFF117BDD),
                     fontWeight: FontWeight.w500,
                   ),
                 ),

@@ -4,6 +4,7 @@ import 'package:doc/hospital/my_jobs_page.dart' as postjob_screen;
 import 'package:doc/hospital/manage_job_listings.dart';
 import 'package:doc/healthcare/hospital_profile.dart';
 import 'package:doc/hospital/scheduled_interviews.dart';
+import 'package:doc/admin/surgeon_tab.dart';
 
 class Navbar extends StatefulWidget {
   final Map<String, dynamic> hospitalData;
@@ -17,7 +18,6 @@ class Navbar extends StatefulWidget {
 class _NavbarState extends State<Navbar> {
   int selectedIndex = 0;
 
-  late final List<Widget> pages;
   late final String healthcareId;
 
   @override
@@ -32,22 +32,27 @@ class _NavbarState extends State<Navbar> {
     
     debugPrint('🏥 Navbar: healthcareId = $healthcareId');
     debugPrint('🏥 Navbar: hospitalData = ${widget.hospitalData}');
-    
-    pages = [
-      myjobs_screen.MyJobsPage(
-        healthcareId: healthcareId,
-        hospitalData: widget.hospitalData,
-        onHospitalNameTap: _openHospitalProfile,
-      ),
-      ManageJobListings(hospitalData: widget.hospitalData),
-      postjob_screen.MyJobsPage(
-        healthcareId: healthcareId,
-        hospitalData: widget.hospitalData,
-        onHospitalNameTap: _openHospitalProfile,
-      ),
-      ScheduledInterviewScreen(healthcareId: healthcareId),
-    ];
   }
+
+  List<Widget> get pages => [
+        myjobs_screen.MyJobsPage(
+          healthcareId: healthcareId,
+          hospitalData: widget.hospitalData,
+          onHospitalNameTap: _openHospitalProfile,
+        ),
+        ManageJobListings(hospitalData: widget.hospitalData),
+        postjob_screen.MyJobsPage(
+          healthcareId: healthcareId,
+          hospitalData: widget.hospitalData,
+          onHospitalNameTap: _openHospitalProfile,
+        ),
+        ScheduledInterviewScreen(healthcareId: healthcareId),
+        SurgeonTab(
+          hospitalData: widget.hospitalData,
+          healthcareId: healthcareId,
+          onHospitalNameTap: _openHospitalProfile,
+        ),
+      ];
 
   void _openHospitalProfile() {
     Navigator.push(
@@ -67,12 +72,15 @@ class _NavbarState extends State<Navbar> {
 
   @override
   Widget build(BuildContext context) {
+    final pageList = pages;
+    final safeIndex = selectedIndex >= pageList.length ? 0 : selectedIndex;
+
     return Scaffold(
       backgroundColor: Colors.white,
-      body: pages[selectedIndex],
+      body: pageList[safeIndex],
 
       bottomNavigationBar: Container(
-        padding: const EdgeInsets.symmetric(vertical: 12),
+        padding: const EdgeInsets.symmetric(vertical: 10),
         decoration: const BoxDecoration(color: Colors.white),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceAround,
@@ -81,6 +89,7 @@ class _NavbarState extends State<Navbar> {
             _navItem(index: 1, icon: Icons.group, label: "Applicants"),
             _navItem(index: 2, icon: Icons.add, label: "Post Job"),
             _navItem(index: 3, icon: Icons.calendar_month, label: "Interviews"),
+            _navItem(index: 4, icon: Icons.medical_services, label: "Surgeons"),
           ],
         ),
       ),
@@ -104,14 +113,14 @@ class _NavbarState extends State<Navbar> {
         children: [
           Icon(
             icon,
-            size: 28,
+            size: 24,
             color: isSelected ? selectedColor : unselectedColor,
           ),
           const SizedBox(height: 4),
           Text(
             label,
             style: TextStyle(
-              fontSize: 12,
+              fontSize: 11,
               color: isSelected ? selectedColor : unselectedColor,
               fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
             ),

@@ -8,6 +8,7 @@ import 'package:doc/utils/session_manager.dart';
 import 'package:doc/homescreen/search_job_screen.dart';
 import 'package:doc/profileprofile/surgeon_profile.dart';
 import 'package:doc/homescreen/applied_job_details_screen.dart';
+import 'package:doc/admin/surgeon_tab.dart';
 
 class AppliedJobsScreen extends StatefulWidget {
   const AppliedJobsScreen({super.key});
@@ -576,6 +577,14 @@ class _AppliedJobsScreenState extends State<AppliedJobsScreen> {
                   builder: (_) => const SearchScreen(),
                 ),
               );
+          }),
+          _navItem(Icons.medical_services_outlined, "Surgeons", false, () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) => const SurgeonTab(showAppBar: true),
+              ),
+            );
           }),
           _navItem(Icons.bookmark, "Applied Jobs", true, () {}), // Using bookmark icon to match design closer
           _navItem(Iconsax.user, "Profile", false, () async {

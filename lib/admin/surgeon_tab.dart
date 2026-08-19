@@ -4,12 +4,25 @@ import 'package:http/http.dart' as http;
 import 'package:doc/utils/app_config.dart';
 
 import 'package:doc/admin/surgeon_profile_screen.dart';
+import 'package:doc/healthcare/hospital_profile.dart';
+import 'package:doc/utils/session_manager.dart';
 
-/// SurgeonTab displays the list of surgeons for admin management.
+/// SurgeonTab displays the list of surgeons for healthcare and admin management.
 class SurgeonTab extends StatefulWidget {
-  final Map<String, dynamic> adminData;
+  final Map<String, dynamic>? adminData;
+  final Map<String, dynamic>? hospitalData;
+  final String? healthcareId;
+  final VoidCallback? onHospitalNameTap;
+  final bool showAppBar;
 
-  const SurgeonTab({super.key, required this.adminData});
+  const SurgeonTab({
+    super.key,
+    this.adminData,
+    this.hospitalData,
+    this.healthcareId,
+    this.onHospitalNameTap,
+    this.showAppBar = false,
+  });
 
   @override
   State<SurgeonTab> createState() => _SurgeonTabState();
@@ -19,9 +32,19 @@ class _SurgeonTabState extends State<SurgeonTab> {
   bool _isLoading = false;
   List<Map<String, dynamic>> _surgeons = [];
   List<Map<String, dynamic>> _filteredSurgeons = [];
-  int _totalCount = 0;
   String _searchQuery = '';
   final TextEditingController _searchController = TextEditingController();
+
+  Color get primaryColor {
+    if (widget.adminData != null && widget.adminData!.isNotEmpty) {
+      return const Color(0xFF1E3A5F); // Admin dark navy
+    }
+    return const Color(0xFF117BDD); // Healthcare / Surgeon Search signature blue
+  }
+
+  // Hospital Header State
+  String _hospitalName = '';
+  String? _hospitalLogoUrl;
 
   // Filter options
   String _selectedSpeciality = 'All';
@@ -43,6 +66,153 @@ class _SurgeonTabState extends State<SurgeonTab> {
   void initState() {
     super.initState();
     _loadSurgeons();
+    _fetchHospitalHeader();
+  }
+
+  Future<void> _fetchHospitalHeader() async {
+    if (widget.hospitalData != null && widget.hospitalData!.isNotEmpty) {
+      final name = widget.hospitalData!['hospitalName'] ??
+          widget.hospitalData!['name'] ??
+          widget.hospitalData!['organizationName'];
+      final logo = widget.hospitalData!['hospitalLogo'];
+
+      if (name != null && name.toString().isNotEmpty) {
+        _hospitalName = name.toString();
+      }
+      if (logo != null && logo.toString().isNotEmpty) {
+        _hospitalLogoUrl = logo.toString();
+      }
+    }
+
+    if (_hospitalName.isEmpty) {
+      try {
+        String? id = widget.healthcareId;
+        if (id == null || id.isEmpty) {
+          id = await SessionManager.getHealthcareId();
+        }
+        if (id == null || id.isEmpty) {
+          id = await SessionManager.getProfileId();
+        }
+
+        if (id != null && id.isNotEmpty) {
+          final uri = Uri.parse('${AppConfig.apiBaseUrl}/healthcare/healthcare-profile/$id');
+          final response = await http.get(uri);
+          if (response.statusCode == 200) {
+            final body = jsonDecode(response.body);
+            final data = body is Map && body['data'] != null ? body['data'] : body;
+            if (data is Map) {
+              final name = data['hospitalName'] ?? data['name'] ?? data['organizationName'];
+              final logo = data['hospitalLogo'];
+              if (mounted) {
+                setState(() {
+                  if (name != null && name.toString().isNotEmpty) {
+                    _hospitalName = name.toString();
+                  }
+                  if (logo != null && logo.toString().isNotEmpty) {
+                    _hospitalLogoUrl = logo.toString();
+                  }
+                });
+              }
+            }
+          }
+        }
+      } catch (e) {
+        debugPrint('Error fetching hospital header in SurgeonTab: $e');
+      }
+    }
+  }
+
+  Widget _buildHospitalHeaderCard() {
+    return Padding(
+      padding: const EdgeInsets.only(left: 16, right: 16, top: 16, bottom: 8),
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(18),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.08),
+              blurRadius: 12,
+              spreadRadius: 1,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        child: Row(
+          children: [
+            // Hospital Logo
+            ClipOval(
+              child: Container(
+                height: 40,
+                width: 40,
+                decoration: const BoxDecoration(shape: BoxShape.circle),
+                child: (_hospitalLogoUrl != null && _hospitalLogoUrl!.isNotEmpty)
+                    ? Image.network(
+                        _hospitalLogoUrl!,
+                        fit: BoxFit.cover,
+                        errorBuilder: (context, error, stackTrace) {
+                          return Image.asset(
+                            "assets/logo2.png",
+                            fit: BoxFit.cover,
+                          );
+                        },
+                      )
+                    : Image.asset(
+                        "assets/logo2.png",
+                        fit: BoxFit.cover,
+                      ),
+              ),
+            ),
+            const SizedBox(width: 12),
+
+            // Hospital Name (tappable to view hospital profile)
+            Expanded(
+              child: GestureDetector(
+                onTap: () {
+                  if (widget.onHospitalNameTap != null) {
+                    widget.onHospitalNameTap!();
+                  } else if (widget.hospitalData != null) {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => HospitalProfile(
+                          data: widget.hospitalData!,
+                          showBottomBar: false,
+                        ),
+                      ),
+                    );
+                  }
+                },
+                child: Text(
+                  _hospitalName.isNotEmpty ? _hospitalName : "Hospital",
+                  style: const TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.black87,
+                  ),
+                ),
+              ),
+            ),
+
+            // Notification Icon
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: Colors.blue, width: 1.2),
+              ),
+              child: const Icon(
+                Icons.notifications_none,
+                color: Colors.blue,
+                size: 22,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 
   @override
@@ -62,10 +232,8 @@ class _SurgeonTabState extends State<SurgeonTab> {
       if (response.statusCode == 200) {
         final body = jsonDecode(response.body);
         final data = body['data'];
-        final total = body['total'] ?? 0;
 
         setState(() {
-          _totalCount = total is int ? total : int.tryParse(total.toString()) ?? 0;
           if (data is List) {
             _surgeons = data.map((e) => Map<String, dynamic>.from(e)).toList();
             // Extract unique states for filter
@@ -188,12 +356,12 @@ class _SurgeonTabState extends State<SurgeonTab> {
                 padding: const EdgeInsets.all(16),
                 child: Row(
                   children: [
-                    const Text(
+                    Text(
                       'Filter Options',
                       style: TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
-                        color: Color(0xFF1E3A5F),
+                        color: primaryColor,
                       ),
                     ),
                     const Spacer(),
@@ -207,7 +375,7 @@ class _SurgeonTabState extends State<SurgeonTab> {
                         setState(() {});
                         _applyFilters();
                       },
-                      child: const Text('Reset'),
+                      child: Text('Reset', style: TextStyle(color: primaryColor)),
                     ),
                   ],
                 ),
@@ -220,12 +388,12 @@ class _SurgeonTabState extends State<SurgeonTab> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       // Speciality Filter
-                      const Text(
+                      Text(
                         'Speciality',
                         style: TextStyle(
                           fontSize: 14,
                           fontWeight: FontWeight.w600,
-                          color: Color(0xFF1E3A5F),
+                          color: primaryColor,
                         ),
                       ),
                       const SizedBox(height: 12),
@@ -245,12 +413,12 @@ class _SurgeonTabState extends State<SurgeonTab> {
                               ),
                               decoration: BoxDecoration(
                                 color: isSelected
-                                    ? const Color(0xFF1E3A5F)
+                                    ? primaryColor
                                     : Colors.grey.shade100,
                                 borderRadius: BorderRadius.circular(20),
                                 border: Border.all(
                                   color: isSelected
-                                      ? const Color(0xFF1E3A5F)
+                                      ? primaryColor
                                       : Colors.grey.shade300,
                                 ),
                               ),
@@ -268,12 +436,12 @@ class _SurgeonTabState extends State<SurgeonTab> {
                       ),
                       const SizedBox(height: 24),
                       // State Filter
-                      const Text(
+                      Text(
                         'State',
                         style: TextStyle(
                           fontSize: 14,
                           fontWeight: FontWeight.w600,
-                          color: Color(0xFF1E3A5F),
+                          color: primaryColor,
                         ),
                       ),
                       const SizedBox(height: 12),
@@ -293,12 +461,12 @@ class _SurgeonTabState extends State<SurgeonTab> {
                               ),
                               decoration: BoxDecoration(
                                 color: isSelected
-                                    ? const Color(0xFF1E3A5F)
+                                    ? primaryColor
                                     : Colors.grey.shade100,
                                 borderRadius: BorderRadius.circular(20),
                                 border: Border.all(
                                   color: isSelected
-                                      ? const Color(0xFF1E3A5F)
+                                      ? primaryColor
                                       : Colors.grey.shade300,
                                 ),
                               ),
@@ -331,7 +499,7 @@ class _SurgeonTabState extends State<SurgeonTab> {
                       _applyFilters();
                     },
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF1E3A5F),
+                      backgroundColor: primaryColor,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
                       ),
@@ -358,219 +526,165 @@ class _SurgeonTabState extends State<SurgeonTab> {
   Widget build(BuildContext context) {
     final hasActiveFilters = _selectedSpeciality != 'All' || _selectedState != 'All';
     
-    return RefreshIndicator(
-      onRefresh: _loadSurgeons,
-      color: const Color(0xFF1E3A5F),
-      child: Column(
-        children: [
-          // Stats Header
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-            decoration: BoxDecoration(
-              color: Colors.grey.shade50,
-              border: Border(
-                bottom: BorderSide(color: Colors.grey.shade200),
-              ),
-            ),
-            child: Row(
-              children: [
-                // Total Surgeons Card
-                Expanded(
-                  child: Container(
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      gradient: const LinearGradient(
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                        colors: [
-                          Color(0xFF1E3A5F),
-                          Color(0xFF2E5077),
-                        ],
-                      ),
-                      borderRadius: BorderRadius.circular(14),
-                      boxShadow: [
-                        BoxShadow(
-                          color: const Color(0xFF1E3A5F).withValues(alpha: 0.3),
-                          blurRadius: 8,
-                          offset: const Offset(0, 3),
-                        ),
-                      ],
-                    ),
-                    child: Row(
-                      children: [
-                        Container(
-                          width: 50,
-                          height: 50,
-                          decoration: BoxDecoration(
-                            color: Colors.white.withValues(alpha: 0.2),
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: const Icon(
-                            Icons.medical_services,
-                            color: Colors.white,
-                            size: 26,
-                          ),
-                        ),
-                        const SizedBox(width: 14),
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'Total Surgeons',
-                              style: TextStyle(
-                                fontSize: 13,
-                                color: Colors.white.withValues(alpha: 0.85),
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
-                            const SizedBox(height: 4),
-                            Text(
-                              _isLoading ? '...' : _totalCount.toString(),
-                              style: const TextStyle(
-                                fontSize: 28,
-                                color: Colors.white,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-          // Search and Filter Header
-          Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: Colors.grey.shade50,
-              border: Border(
-                bottom: BorderSide(color: Colors.grey.shade200),
-              ),
-            ),
-            child: Row(
-              children: [
-                Expanded(
-                  child: Container(
-                    height: 45,
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: Colors.grey.shade300),
-                    ),
-                    child: TextField(
-                      controller: _searchController,
-                      onChanged: _onSearchChanged,
-                      decoration: InputDecoration(
-                        hintText: 'Search surgeons...',
-                        hintStyle: TextStyle(
-                          color: Colors.grey.shade500,
-                          fontSize: 14,
-                        ),
-                        prefixIcon: Icon(
-                          Icons.search,
-                          color: Colors.grey.shade500,
-                        ),
-                        suffixIcon: _searchQuery.isNotEmpty
-                            ? IconButton(
-                                icon: Icon(
-                                  Icons.clear,
-                                  color: Colors.grey.shade500,
-                                  size: 20,
-                                ),
-                                onPressed: () {
-                                  _searchController.clear();
-                                  _onSearchChanged('');
-                                },
-                              )
-                            : null,
-                        border: InputBorder.none,
-                        contentPadding: const EdgeInsets.symmetric(
-                          horizontal: 16,
-                          vertical: 12,
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Container(
-                  height: 45,
-                  width: 45,
-                  decoration: BoxDecoration(
-                    color: hasActiveFilters
-                        ? const Color(0xFF2E7D32)
-                        : const Color(0xFF1E3A5F),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Stack(
-                    children: [
-                      IconButton(
-                        onPressed: _showFilterDialog,
-                        icon: const Icon(
-                          Icons.filter_list,
-                          color: Colors.white,
-                          size: 22,
-                        ),
-                      ),
-                      if (hasActiveFilters)
-                        Positioned(
-                          right: 8,
-                          top: 8,
-                          child: Container(
-                            width: 8,
-                            height: 8,
-                            decoration: const BoxDecoration(
-                              color: Colors.orange,
-                              shape: BoxShape.circle,
-                            ),
-                          ),
-                        ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ),
-          // Results count
-          if (!_isLoading && _surgeons.isNotEmpty)
+    final bodyContent = SafeArea(
+      top: true,
+      bottom: false,
+      child: RefreshIndicator(
+        onRefresh: _loadSurgeons,
+        color: const Color(0xFF094277),
+        child: Column(
+          children: [
+            const SizedBox(height: 6),
+            // Hospital Profile Header Card (Logo, Name, Notification Icon)
+            _buildHospitalHeaderCard(),
+            // Search and Filter Header
             Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              alignment: Alignment.centerLeft,
-              child: Text(
-                _searchQuery.isEmpty && !hasActiveFilters
-                    ? 'Showing ${_filteredSurgeons.length} surgeons'
-                    : 'Found ${_filteredSurgeons.length} of ${_surgeons.length} surgeons',
-                style: TextStyle(
-                  fontSize: 13,
-                  color: Colors.grey.shade600,
-                  fontWeight: FontWeight.w500,
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: Colors.grey.shade50,
+                border: Border(
+                  bottom: BorderSide(color: Colors.grey.shade200),
                 ),
               ),
-            ),
-          // Content Area
-          Expanded(
-            child: _isLoading
-                ? const Center(
-                    child: CircularProgressIndicator(
-                      color: Color(0xFF1E3A5F),
-                    ),
-                  )
-                : _filteredSurgeons.isEmpty
-                    ? _buildEmptyState(hasActiveFilters)
-                    : ListView.builder(
-                        padding: const EdgeInsets.all(16),
-                        itemCount: _filteredSurgeons.length,
-                        itemBuilder: (context, index) {
-                          return _buildSurgeonCard(_filteredSurgeons[index]);
-                        },
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Container(
+                      height: 45,
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: Colors.grey.shade300),
                       ),
-          ),
-        ],
+                      child: TextField(
+                        controller: _searchController,
+                        onChanged: _onSearchChanged,
+                        decoration: InputDecoration(
+                          hintText: 'Search surgeons...',
+                          hintStyle: TextStyle(
+                            color: Colors.grey.shade500,
+                            fontSize: 14,
+                          ),
+                          prefixIcon: Icon(
+                            Icons.search,
+                            color: Colors.grey.shade500,
+                          ),
+                          suffixIcon: _searchQuery.isNotEmpty
+                              ? IconButton(
+                                  icon: Icon(
+                                    Icons.clear,
+                                    color: Colors.grey.shade500,
+                                    size: 20,
+                                  ),
+                                  onPressed: () {
+                                    _searchController.clear();
+                                    _onSearchChanged('');
+                                  },
+                                )
+                              : null,
+                          border: InputBorder.none,
+                          contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 12,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Container(
+                    height: 45,
+                    width: 45,
+                    decoration: BoxDecoration(
+                      color: hasActiveFilters
+                          ? const Color(0xFF2E7D32)
+                          : primaryColor,
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Stack(
+                      children: [
+                        IconButton(
+                          onPressed: _showFilterDialog,
+                          icon: const Icon(
+                            Icons.filter_list,
+                            color: Colors.white,
+                            size: 22,
+                          ),
+                        ),
+                        if (hasActiveFilters)
+                          Positioned(
+                            right: 8,
+                            top: 8,
+                            child: Container(
+                              width: 8,
+                              height: 8,
+                              decoration: const BoxDecoration(
+                                color: Colors.orange,
+                                shape: BoxShape.circle,
+                              ),
+                            ),
+                          ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            // Results count
+            if (!_isLoading && _surgeons.isNotEmpty)
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                alignment: Alignment.centerLeft,
+                child: Text(
+                  _searchQuery.isEmpty && !hasActiveFilters
+                      ? 'Showing ${_filteredSurgeons.length} surgeons'
+                      : 'Found ${_filteredSurgeons.length} of ${_surgeons.length} surgeons',
+                  style: TextStyle(
+                    fontSize: 13,
+                    color: Colors.grey.shade600,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ),
+            // Content Area
+            Expanded(
+              child: _isLoading
+                  ? Center(
+                      child: CircularProgressIndicator(
+                        color: primaryColor,
+                      ),
+                    )
+                  : _filteredSurgeons.isEmpty
+                      ? _buildEmptyState(hasActiveFilters)
+                      : ListView.builder(
+                          padding: const EdgeInsets.all(16),
+                          itemCount: _filteredSurgeons.length,
+                          itemBuilder: (context, index) {
+                            return _buildSurgeonCard(_filteredSurgeons[index]);
+                          },
+                        ),
+            ),
+          ],
+        ),
       ),
     );
+
+    if (widget.showAppBar) {
+      return Scaffold(
+        backgroundColor: Colors.white,
+        appBar: AppBar(
+          title: const Text(
+            'Surgeons',
+            style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+          ),
+          backgroundColor: primaryColor,
+          iconTheme: const IconThemeData(color: Colors.white),
+        ),
+        body: bodyContent,
+      );
+    }
+
+    return bodyContent;
   }
 
   Widget _buildEmptyState(bool hasFilters) {
@@ -582,13 +696,13 @@ class _SurgeonTabState extends State<SurgeonTab> {
             width: 120,
             height: 120,
             decoration: BoxDecoration(
-              color: const Color(0xFF1E3A5F).withValues(alpha: 0.1),
+              color: primaryColor.withValues(alpha: 0.1),
               shape: BoxShape.circle,
             ),
-            child: const Icon(
+            child: Icon(
               Icons.medical_services_outlined,
               size: 60,
-              color: Color(0xFF1E3A5F),
+              color: primaryColor,
             ),
           ),
           const SizedBox(height: 24),
@@ -596,10 +710,10 @@ class _SurgeonTabState extends State<SurgeonTab> {
             _searchQuery.isNotEmpty || hasFilters
                 ? 'No Results Found'
                 : 'No Surgeons Found',
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 20,
               fontWeight: FontWeight.bold,
-              color: Color(0xFF1E3A5F),
+              color: primaryColor,
             ),
           ),
           const SizedBox(height: 8),
@@ -670,7 +784,7 @@ class _SurgeonTabState extends State<SurgeonTab> {
                       width: 55,
                       height: 55,
                       decoration: BoxDecoration(
-                        color: const Color(0xFF1E3A5F).withValues(alpha: 0.1),
+                        color: primaryColor.withValues(alpha: 0.1),
                         shape: BoxShape.circle,
                         image: profilePicture.isNotEmpty
                             ? DecorationImage(
@@ -681,9 +795,9 @@ class _SurgeonTabState extends State<SurgeonTab> {
                             : null,
                       ),
                       child: profilePicture.isEmpty
-                          ? const Icon(
+                          ? Icon(
                               Icons.person,
-                              color: Color(0xFF1E3A5F),
+                              color: primaryColor,
                               size: 28,
                             )
                           : null,
@@ -696,10 +810,10 @@ class _SurgeonTabState extends State<SurgeonTab> {
                         children: [
                           Text(
                             name,
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontSize: 16,
                               fontWeight: FontWeight.w600,
-                              color: Color(0xFF1E3A5F),
+                              color: primaryColor,
                             ),
                           ),
                           if (degree.isNotEmpty) ...[
@@ -738,14 +852,14 @@ class _SurgeonTabState extends State<SurgeonTab> {
                           vertical: 6,
                         ),
                         decoration: BoxDecoration(
-                          color: const Color(0xFF1E3A5F).withValues(alpha: 0.1),
+                          color: primaryColor.withValues(alpha: 0.1),
                           borderRadius: BorderRadius.circular(12),
                         ),
                         child: Text(
                           '$experience yrs',
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize: 11,
-                            color: Color(0xFF1E3A5F),
+                            color: primaryColor,
                             fontWeight: FontWeight.w600,
                           ),
                         ),

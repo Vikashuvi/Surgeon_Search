@@ -19,7 +19,6 @@ class _HealthcareTabState extends State<HealthcareTab> {
   bool _isLoading = false;
   List<Map<String, dynamic>> _healthcareList = [];
   List<Map<String, dynamic>> _filteredHealthcareList = [];
-  int _totalCount = 0;
   String _searchQuery = '';
   final TextEditingController _searchController = TextEditingController();
   
@@ -58,10 +57,8 @@ class _HealthcareTabState extends State<HealthcareTab> {
       if (response.statusCode == 200) {
         final body = jsonDecode(response.body);
         final data = body['data'];
-        final total = body['total'] ?? 0;
 
         setState(() {
-          _totalCount = total is int ? total : int.tryParse(total.toString()) ?? 0;
           if (data is List) {
             _healthcareList = data.map((e) => Map<String, dynamic>.from(e)).toList();
           } else {
@@ -370,21 +367,21 @@ class _HealthcareTabState extends State<HealthcareTab> {
                         Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text(
-                              'Total Healthcare',
+                            const Text(
+                              'Healthcare Directory',
                               style: TextStyle(
-                                fontSize: 13,
-                                color: Colors.white.withValues(alpha: 0.85),
-                                fontWeight: FontWeight.w500,
+                                fontSize: 18,
+                                color: Colors.white,
+                                fontWeight: FontWeight.bold,
                               ),
                             ),
                             const SizedBox(height: 4),
                             Text(
-                              _isLoading ? '...' : _totalCount.toString(),
-                              style: const TextStyle(
-                                fontSize: 28,
-                                color: Colors.white,
-                                fontWeight: FontWeight.bold,
+                              'Explore Hospitals & Healthcare Organizations',
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: Colors.white.withValues(alpha: 0.85),
+                                fontWeight: FontWeight.w400,
                               ),
                             ),
                           ],
