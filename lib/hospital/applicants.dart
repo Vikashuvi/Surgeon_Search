@@ -664,7 +664,7 @@ class _ApplicantsState extends State<Applicants> {
             _dropdown(
               value: selectedExperience,
               hint: "Select Experience (Years)",
-              items: List.generate(30, (index) => (index + 1).toString()),
+              items: List.generate(31, (index) => index.toString()),
               onChanged: (v) => setState(() => selectedExperience = v),
             ),
 

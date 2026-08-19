@@ -40,7 +40,7 @@ class SignUpScreen extends StatefulWidget {
 
 class _SignUpScreenState extends State<SignUpScreen> {
   final _formKey = GlobalKey<FormState>();
-  String? selectedRole;
+  String? selectedRole = "Surgeon";
   bool _obscurePassword = true;
   bool isLoading = false;
   final GoogleSignIn _googleSignIn = GoogleSignIn(
@@ -63,12 +63,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
   Future<void> signUpUser() async {
     if (!_formKey.currentState!.validate()) return;
 
-    if (selectedRole == null) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text("Please select a role")));
-      return;
-    }
+    final roleToUse = selectedRole ?? "Surgeon";
 
     setState(() => isLoading = true);
 
@@ -86,7 +81,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
           "mobilenumber": phoneController.text.trim(),
           "mobile": phoneController.text.trim(),
           "password": passwordController.text.trim(),
-          "type": selectedRole!,
+          "type": roleToUse,
         }),
       );
 
@@ -232,12 +227,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
   Future<void> _handleGoogleSignIn() async {
     if (isLoading) return;
     
-    if (selectedRole == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Please select a role first"))
-      );
-      return;
-    }
+    final roleToUse = selectedRole ?? "Surgeon";
     
     try {
       // Force account selection by signing out first
@@ -264,7 +254,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
           'googleId': googleUser.id,
           'idToken': idToken,
           'accessToken': accessToken,
-          'type': selectedRole,
+          'type': roleToUse,
         }),
       );
 
@@ -308,7 +298,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
             .trim();
         if (profileId.isEmpty) profileId = const Uuid().v4();
 
-        final effectiveRole = (role != null && role.isNotEmpty) ? role : selectedRole ?? '';
+        final effectiveRole = (role != null && role.isNotEmpty) ? role : roleToUse;
         await AuthController.to.saveSession(
           id: profileId,
           role: effectiveRole,
