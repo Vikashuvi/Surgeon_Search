@@ -1038,6 +1038,22 @@ class _JobDetailsScreenState extends State<JobDetailsScreen> {
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
+                                if ((_job!['designation'] ?? '').toString().trim().isNotEmpty) ...[
+                                  _sectionTitle('Designation'),
+                                  _sectionBody(
+                                    (_job!['designation'] ?? '').toString().trim(),
+                                  ),
+                                  const SizedBox(height: 12),
+                                ],
+
+                                if ((_job!['recruiter'] ?? _job!['postedBy'] ?? '').toString().trim().isNotEmpty) ...[
+                                  _sectionTitle('Posted By / Recruiter'),
+                                  _sectionBody(
+                                    (_job!['recruiter'] ?? _job!['postedBy'] ?? '').toString().trim(),
+                                  ),
+                                  const SizedBox(height: 12),
+                                ],
+
                                 _sectionTitle('Department'),
                                 _sectionBody(
                                   (_job!['department'] ?? '').toString().trim(),

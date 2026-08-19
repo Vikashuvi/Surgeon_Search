@@ -47,6 +47,24 @@ class _ApplicantsState extends State<Applicants> {
   String? interviewMode;
   String? salaryRange;
   String? selectedExperience;
+  String? selectedDesignation;
+  String? selectedRecruiter;
+
+  final List<String> designationOptions = [
+    "Fellowship",
+    "Senior Resident / Registrar",
+    "Assistant / Associate Professor",
+    "Associate Consultant",
+    "Consultant / Professor",
+    "Senior Consultant / Professor / Lead",
+    "HOD / Chairman",
+  ];
+
+  final List<String> recruiterOptions = [
+    "HR / Management",
+    "HOD / Senior Consultant / Hospital Owner",
+    "Co-surgeon / Doctor",
+  ];
 
   bool agree = false;
 
@@ -248,6 +266,8 @@ class _ApplicantsState extends State<Applicants> {
 
       final Map<String, String> payload = {
         'jobTitle': jobTitleCtrl.text.trim(),
+        'designation': selectedDesignation ?? '',
+        'recruiter': selectedRecruiter ?? '',
         'department': department ?? '',
         'subSpeciality': subSpeciality ?? '',
         'jobType': jobType ?? '',
@@ -432,6 +452,14 @@ class _ApplicantsState extends State<Applicants> {
             _label("Job Title"),
             _input(jobTitleCtrl, "e.g., Consultant Orthopedic Surgeon"),
 
+            _label("Designation"),
+            _dropdown(
+              value: selectedDesignation,
+              hint: "Select Designation",
+              items: designationOptions,
+              onChanged: (v) => setState(() => selectedDesignation = v),
+            ),
+
             _label("Speciality"),
             DropdownSearch<String>(
               popupProps: const PopupProps.menu(
@@ -524,6 +552,14 @@ class _ApplicantsState extends State<Applicants> {
               hint: "Job Type",
               items: ["Full Time", "Part Time/Locum", "Fee for service"],
               onChanged: (v) => setState(() => jobType = v),
+            ),
+
+            _label("Recruiter Role / Posted By"),
+            _dropdown(
+              value: selectedRecruiter,
+              hint: "Select Recruiter Role",
+              items: recruiterOptions,
+              onChanged: (v) => setState(() => selectedRecruiter = v),
             ),
 
             _label("State"),

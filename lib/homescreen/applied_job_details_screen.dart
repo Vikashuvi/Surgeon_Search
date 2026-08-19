@@ -118,6 +118,12 @@ class _AppliedJobDetailsScreenState extends State<AppliedJobDetailsScreen> {
     
     final experience = job['minYearsOfExperience'] != null ? '${job['minYearsOfExperience']} Years' : 'Experience';
     final jobType = job['jobType'] ?? 'Full Time';
+    final designation = (job['designation'] != null && job['designation'].toString().trim().isNotEmpty)
+        ? job['designation'].toString()
+        : null;
+    final recruiter = (job['recruiter'] != null && job['recruiter'].toString().trim().isNotEmpty)
+        ? job['recruiter'].toString()
+        : null;
     final salary = job['salaryRange'] ?? 'Salary';
     final department = job['department'] ?? 'N/A';
     final subSpeciality = job['subSpeciality'] ?? 'N/A';
@@ -284,6 +290,14 @@ class _AppliedJobDetailsScreenState extends State<AppliedJobDetailsScreen> {
                     ),
 
                     const SizedBox(height: 20),
+                    if (designation != null && designation.isNotEmpty) ...[
+                      _sectionTitle("Designation:"),
+                      _sectionText(designation),
+                    ],
+                    if (recruiter != null && recruiter.isNotEmpty) ...[
+                      _sectionTitle("Posted By / Recruiter:"),
+                      _sectionText(recruiter),
+                    ],
                     _sectionTitle("Department:"),
                     _sectionText(department),
                     _sectionTitle("Sub-Speciality:"),
