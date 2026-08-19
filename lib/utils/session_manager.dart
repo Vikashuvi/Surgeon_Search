@@ -80,18 +80,17 @@ class SessionManager {
   static Future<bool> isLoggedIn() async {
     final prefs = await SharedPreferences.getInstance();
     final userId = prefs.getString(_keyUserId);
+    final profileId = prefs.getString(_keyProfileId);
     final token = prefs.getString(_keyToken);
     
-    final bool hasValidSession = userId != null &&
-        userId.isNotEmpty &&
-        token != null &&
-        token.isNotEmpty &&
-        token != 'null' && // Handle stringified nulls
-        token != '';
+    final bool hasValidUser = (userId != null && userId.isNotEmpty && userId != 'null') ||
+        (profileId != null && profileId.isNotEmpty && profileId != 'null');
+
+    final bool hasValidSession = hasValidUser;
 
     // Log the check for debugging state issues
     // ignore: avoid_print
-    print('📦 Session Check - LoggedIn: $hasValidSession (ID: $userId, HasToken: ${token != null && token.isNotEmpty})');
+    print('📦 Session Check - LoggedIn: $hasValidSession (ID: $userId, ProfileID: $profileId, HasToken: ${token != null && token.isNotEmpty})');
     
     return hasValidSession;
   }
@@ -104,9 +103,14 @@ class SessionManager {
     await prefs.remove(_keyToken);
     await prefs.remove(_keyLoginId);
     await prefs.remove(_keyRole);
+    await prefs.remove(_keyHealthcareId);
     await prefs.remove(_keyHealthProfileFlag);
     await prefs.remove(_keySurgeonProfileFlag);
+    await prefs.remove(_keyFreeTrialFlag);
     await prefs.remove(_keyAdminData);
+    await prefs.remove('user_email');
+    await prefs.remove('user_phone');
+    await prefs.remove('user_name');
   }
 
   static Future<void> saveHealthProfileFlag(bool value) async {

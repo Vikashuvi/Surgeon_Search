@@ -27,28 +27,7 @@ class _ApplicantsState extends State<Applicants> {
   final TextEditingController qualificationCtrl = TextEditingController();
   final TextEditingController experienceCtrl = TextEditingController();
   
-  // ✅ Image Picker for Job Post
-  File? _jobImage;
-  final ImagePicker _picker = ImagePicker();
 
-  Future<void> _pickImage() async {
-    try {
-      final XFile? pickedFile = await _picker.pickImage(
-        source: ImageSource.gallery,
-        maxWidth: 1000,
-        maxHeight: 1000,
-        imageQuality: 85,
-      );
-
-      if (pickedFile != null) {
-        setState(() {
-          _jobImage = File(pickedFile.path);
-        });
-      }
-    } catch (e) {
-      debugPrint("Error picking image: $e");
-    }
-  }
 
   // Hospital Profile Logic
   String _hospitalName = '';
@@ -299,14 +278,7 @@ class _ApplicantsState extends State<Applicants> {
       
       request.fields.addAll(payload);
 
-      if (_jobImage != null) {
-        request.files.add(
-          await http.MultipartFile.fromPath(
-            'jobImage', // Field name for backend
-            _jobImage!.path,
-          ),
-        );
-      }
+
 
       final streamedResponse = await request.send();
       final resp = await http.Response.fromStream(streamedResponse);
@@ -455,37 +427,7 @@ class _ApplicantsState extends State<Applicants> {
 
             const Text("Find the right surgeon for your team.\n"),
 
-            // ✅ Job Poster Picker
-            _label("Job Poster / Thumbnail (Optional)"),
-            Center(
-              child: GestureDetector(
-                onTap: _pickImage,
-                child: Container(
-                  height: 150,
-                  width: double.infinity,
-                  decoration: BoxDecoration(
-                    color: Colors.grey[100],
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: Colors.grey[300]!),
-                  ),
-                  child: _jobImage != null
-                      ? ClipRRect(
-                          borderRadius: BorderRadius.circular(12),
-                          child: Image.file(_jobImage!, fit: BoxFit.cover),
-                        )
-                      : Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(Icons.add_photo_alternate_outlined,
-                                size: 50, color: Colors.grey[400]),
-                            const SizedBox(height: 8),
-                            Text("Click to select an image",
-                                style: TextStyle(color: Colors.grey[600])),
-                          ],
-                        ),
-                ),
-              ),
-            ),
+
 
             _label("Job Title"),
             _input(jobTitleCtrl, "e.g., Consultant Orthopedic Surgeon"),

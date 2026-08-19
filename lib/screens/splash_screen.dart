@@ -54,6 +54,17 @@ class _SplashScreenState extends State<SplashScreen> {
         );
       } else if (role.contains('hospital') || role.contains('health') || role.contains('org')) {
         final hid = (await SessionManager.getHealthcareId()) ?? profileId;
+        final healthProfileFlag = await SessionManager.getHealthProfileFlag() ?? false;
+
+        if (healthProfileFlag) {
+          if (!mounted) return;
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (_) => Navbar(hospitalData: {'healthcare_id': hid})),
+          );
+          return;
+        }
+
         try {
           final url = Uri.parse('${AppConfig.apiBaseUrl}/healthcare/healthcare-profile/$hid');
 
@@ -64,6 +75,8 @@ class _SplashScreenState extends State<SplashScreen> {
             try { parsed = jsonDecode(resp.body); } catch (_) { parsed = {}; }
             final payload = (parsed is Map && parsed['data'] != null) ? parsed['data'] : parsed;
             final mapPayload = (payload is Map<String, dynamic>) ? payload : <String, dynamic>{};
+            await SessionManager.saveHealthProfileFlag(true);
+            if (!mounted) return;
             Navigator.pushReplacement(
               context,
               MaterialPageRoute(builder: (_) => Navbar(hospitalData: mapPayload)),
@@ -76,10 +89,17 @@ class _SplashScreenState extends State<SplashScreen> {
           }
         } catch (_) {
           if (!mounted) return;
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(builder: (_) => HospitalForm(healthcareId: hid)),
-          );
+          if (healthProfileFlag) {
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(builder: (_) => Navbar(hospitalData: {'healthcare_id': hid})),
+            );
+          } else {
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(builder: (_) => HospitalForm(healthcareId: hid)),
+            );
+          }
         }
       } else if (role.contains('surgeon') || role.contains('doctor')) {
         final surgeonProfile = await SessionManager.getSurgeonProfileFlag() ?? false;
@@ -112,6 +132,8 @@ class _SplashScreenState extends State<SplashScreen> {
           }
 
           if (hasValidProfile) {
+            await SessionManager.saveSurgeonProfileFlag(true);
+            if (!mounted) return;
             Navigator.pushReplacement(
               context,
               MaterialPageRoute(
@@ -128,6 +150,34 @@ class _SplashScreenState extends State<SplashScreen> {
           }
         } catch (_) {
           if (!mounted) return;
+          if (surgeonProfile) {
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(
+                builder: (_) => ProfessionalProfileViewPage(profileId: profileId),
+              ),
+            );
+          } else {
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(
+                builder: (_) => SurgeonForm(profileId: profileId, existingData: const {}),
+              ),
+            );
+          }
+        }
+      } else {
+        // Default to surgeon flow if role unknown
+        if (!mounted) return;
+        final surgeonProfile = await SessionManager.getSurgeonProfileFlag() ?? false;
+        if (surgeonProfile) {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(
+              builder: (_) => ProfessionalProfileViewPage(profileId: profileId),
+            ),
+          );
+        } else {
           Navigator.pushReplacement(
             context,
             MaterialPageRoute(
@@ -135,15 +185,6 @@ class _SplashScreenState extends State<SplashScreen> {
             ),
           );
         }
-      } else {
-        // Default to surgeon flow if role unknown
-        if (!mounted) return;
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(
-            builder: (_) => SurgeonForm(profileId: profileId, existingData: const {}),
-          ),
-        );
       }
     } else {
       debugPrint('🚪 No active session found. Redirecting to Login.');

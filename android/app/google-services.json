@@ -14,11 +14,67 @@
       },
       "oauth_client": [
         {
+          "client_id": "692027562141-18jkvtsesm882h1p551993g8nq3apkht.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.venka.surgeonsearch",
+            "certificate_hash": "54010009d0d37069fa3a58f4c8342fe331489434"
+          }
+        },
+        {
+          "client_id": "692027562141-8fofp8lj0f7l4qbn0li0hr99l1js6da8.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.venka.surgeonsearch",
+            "certificate_hash": "acc6e394619a0c4694a862bacb48e8f5a442c05e"
+          }
+        },
+        {
+          "client_id": "692027562141-a5mbct212vn29mvkr0sd303td6696qin.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.venka.surgeonsearch",
+            "certificate_hash": "1c739a0968b69c21362b090acc1cd475a0dd13e2"
+          }
+        },
+        {
+          "client_id": "692027562141-hj8udtqj7t51fproul8vtjgoq2376eot.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.venka.surgeonsearch",
+            "certificate_hash": "1ad7bec90d96d407819efcce15396f21f07a649a"
+          }
+        },
+        {
           "client_id": "692027562141-ht0biunqdb7op6mhhv3l72l8lm03e2ps.apps.googleusercontent.com",
           "client_type": 1,
           "android_info": {
             "package_name": "com.venka.surgeonsearch",
             "certificate_hash": "ad22d9b3bc4a3f802177845cd8dd766face08f54"
+          }
+        },
+        {
+          "client_id": "692027562141-jldejn12hoi5cp1ks85etofb9c2qg314.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.venka.surgeonsearch",
+            "certificate_hash": "cabd70e5b2b44f64229dd28848a87781d7193b85"
+          }
+        },
+        {
+          "client_id": "692027562141-kmv72ok5deaa4hth7kl55c1a9m3osl43.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.venka.surgeonsearch",
+            "certificate_hash": "cef72729c900e1a936efbf0336c0a4b3efb097cf"
+          }
+        },
+        {
+          "client_id": "692027562141-ot5dtlgtk5vs1vhumrf7t2lvnt0473b2.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.venka.surgeonsearch",
+            "certificate_hash": "4d40d6d94a04a2e00164a9eec081c7bbd9ab67c4"
           }
         },
         {
@@ -37,6 +93,13 @@
             {
               "client_id": "692027562141-g1i83eh2gdq3kkck0qo8b6bemerj6vfn.apps.googleusercontent.com",
               "client_type": 3
+            },
+            {
+              "client_id": "692027562141-94dto0j88e2apij1folc0kkjlpecc6i0.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.spotkwik.doc"
+              }
             }
           ]
         }

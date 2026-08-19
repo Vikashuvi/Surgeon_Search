@@ -336,8 +336,8 @@ class _JobDetailsScreenState extends State<JobDetailsScreen> {
                   const SizedBox(height: 8),
                   TextField(
                     controller: linkedinController,
-                    decoration: const InputDecoration(
-                      prefixIcon: Icon(
+                    decoration: InputDecoration(
+                      prefixIcon: const FaIcon(
                         FontAwesomeIcons.linkedinIn,
                         color: AppColors.primary,
                       ),

@@ -282,7 +282,6 @@ class _LoginScreenState extends State<LoginScreen> {
     if (_isLoading) return;
 
     try {
-      // Force account selection by signing out first
       try {
         await _googleSignIn.signOut();
       } catch (_) {}
@@ -293,6 +292,8 @@ class _LoginScreenState extends State<LoginScreen> {
       setState(() => _isLoading = true);
 
       final GoogleSignInAuthentication googleAuth = await googleUser.authentication;
+      final String? idToken = googleAuth.idToken ?? googleAuth.accessToken;
+      final String? accessToken = googleAuth.accessToken;
 
       final url = Uri.parse('${AppConfig.apiBaseUrl}/google-signin');
       final response = await _postWithRetry(
@@ -302,7 +303,8 @@ class _LoginScreenState extends State<LoginScreen> {
           'email': googleUser.email,
           'fullname': googleUser.displayName,
           'googleId': googleUser.id,
-          'idToken': googleAuth.idToken,
+          'idToken': idToken,
+          'accessToken': accessToken,
         }),
       );
 
@@ -359,26 +361,44 @@ class _LoginScreenState extends State<LoginScreen> {
 
         if (!mounted) return;
         
-        // Show a user-friendly message if user is not found or server crashes due to missing user/role
+        // If Google user is not found on backend login check, redirect to SignUpScreen with feedback
         if (message.toLowerCase().contains('not found') || 
             message.toLowerCase().contains('internal server error') || 
             response.statusCode == 404 || 
             response.statusCode == 500) {
-          message = "User not found. Please sign up first!";
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Account not found. Redirecting to Sign Up...'),
+              backgroundColor: Colors.blueAccent,
+            )
+          );
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (_) => const SignUpScreen()),
+          );
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('❌ $message'),
+              backgroundColor: Colors.redAccent,
+            )
+          );
         }
-
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('❌ $message'),
-            backgroundColor: Colors.redAccent,
-          )
-        );
       }
     } catch (error) {
       debugPrint('Google Sign-In Error: $error');
       if (!mounted) return;
+      
+      String errStr = error.toString();
+      if (errStr.contains('10') || errStr.contains('DEVELOPER_ERROR') || errStr.contains('ApiException')) {
+        errStr = 'SHA-1 fingerprint missing in Firebase Console for this build.';
+      }
+
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('⚠️ Google Sign-In Error: $error'))
+        SnackBar(
+          content: Text('⚠️ Google Sign-In: $errStr'),
+          duration: const Duration(seconds: 4),
+        )
       );
     } finally {
       if (mounted) setState(() => _isLoading = false);
@@ -395,42 +415,35 @@ class _LoginScreenState extends State<LoginScreen> {
     String profileId,
     String email,
   ) async {
-    // Save session
-    await SessionManager.saveUserId(profileId);
-    await SessionManager.saveProfileId(profileId);
-    await SessionManager.saveToken(token ?? '');
-    if (role != null && role.isNotEmpty) {
-      await SessionManager.saveRole(role);
-    }
-    await SessionManager.saveHealthProfileFlag(healthProfile);
-    await SessionManager.saveSurgeonProfileFlag(surgeonProfile);
-    await SessionManager.saveUserEmail(email);
-
-    // Update Global Auth State
-    AuthController.to.loginSuccess(role: role ?? '', id: profileId);
-
-    // Save phone number if available
+    String? phone;
+    String? name;
     if (userData is Map) {
-      final phone = (userData['phoneNumber'] ??
+      phone = (userData['phoneNumber'] ??
               userData['phone'] ??
               userData['mobile'] ??
               userData['mobileNumber'] ??
               userData['mobilenumber'])
           ?.toString();
-      if (phone != null && phone.isNotEmpty) {
-        await SessionManager.saveUserPhone(phone);
-      }
 
-      final name = (userData['fullName'] ??
+      name = (userData['fullName'] ??
               userData['fullname'] ??
               userData['name'] ??
               userData['username'] ??
               userData['full_name'])
           ?.toString();
-      if (name != null && name.isNotEmpty) {
-        await SessionManager.saveUserName(name);
-      }
     }
+
+    // Save session using unified AuthController helper
+    await AuthController.to.saveSession(
+      id: profileId,
+      role: role ?? '',
+      email: email,
+      name: name,
+      phone: phone,
+      token: token,
+      healthProfile: healthProfile,
+      surgeonProfile: surgeonProfile,
+    );
 
     if (!mounted) return;
     ScaffoldMessenger.of(

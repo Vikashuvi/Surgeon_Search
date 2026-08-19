@@ -251,6 +251,8 @@ class _SignUpScreenState extends State<SignUpScreen> {
       setState(() => isLoading = true);
 
       final GoogleSignInAuthentication googleAuth = await googleUser.authentication;
+      final String? idToken = googleAuth.idToken ?? googleAuth.accessToken;
+      final String? accessToken = googleAuth.accessToken;
       
       final url = Uri.parse('${AppConfig.apiBaseUrl}/google-signin');
       final response = await _postWithRetry(
@@ -260,7 +262,8 @@ class _SignUpScreenState extends State<SignUpScreen> {
           'email': googleUser.email,
           'fullname': googleUser.displayName,
           'googleId': googleUser.id,
-          'idToken': googleAuth.idToken,
+          'idToken': idToken,
+          'accessToken': accessToken,
           'type': selectedRole,
         }),
       );
@@ -305,20 +308,16 @@ class _SignUpScreenState extends State<SignUpScreen> {
             .trim();
         if (profileId.isEmpty) profileId = const Uuid().v4();
 
-        await SessionManager.saveUserId(profileId);
-        await SessionManager.saveProfileId(profileId);
-        await SessionManager.saveToken(token ?? '');
-        if (role != null && role.isNotEmpty) {
-          await SessionManager.saveRole(role);
-        }
-        await SessionManager.saveHealthProfileFlag(healthProfile);
-        await SessionManager.saveSurgeonProfileFlag(surgeonProfile);
-        await SessionManager.saveUserEmail(googleUser.email);
-        await SessionManager.saveUserName(googleUser.displayName ?? '');
-
-        // Use the role from the server response, fall back to the selectedRole the user picked
         final effectiveRole = (role != null && role.isNotEmpty) ? role : selectedRole ?? '';
-        AuthController.to.loginSuccess(role: effectiveRole, id: profileId);
+        await AuthController.to.saveSession(
+          id: profileId,
+          role: effectiveRole,
+          email: googleUser.email,
+          name: googleUser.displayName,
+          token: token,
+          healthProfile: healthProfile,
+          surgeonProfile: surgeonProfile,
+        );
 
         if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
@@ -392,8 +391,17 @@ class _SignUpScreenState extends State<SignUpScreen> {
     } catch (error) {
       debugPrint('Google Sign-In Error: $error');
       if (!mounted) return;
+
+      String errStr = error.toString();
+      if (errStr.contains('10') || errStr.contains('DEVELOPER_ERROR') || errStr.contains('ApiException')) {
+        errStr = 'SHA-1 fingerprint missing in Firebase Console for this build.';
+      }
+
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('⚠️ Google Sign-In Error: $error'))
+        SnackBar(
+          content: Text('⚠️ Google Sign-In: $errStr'),
+          duration: const Duration(seconds: 4),
+        )
       );
     } finally {
       if (mounted) setState(() => isLoading = false);
