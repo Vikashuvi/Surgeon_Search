@@ -1,5 +1,11 @@
+import 'dart:convert';
+import 'dart:io';
+import 'package:flutter/foundation.dart';
 import 'package:get/get.dart';
+import 'package:http/http.dart' as http;
 import 'package:doc/utils/session_manager.dart';
+import 'package:doc/utils/app_config.dart';
+import 'package:doc/services/notification_service.dart';
 
 class AuthController extends GetxController {
   static AuthController get to => Get.find();
@@ -34,6 +40,9 @@ class AuthController extends GetxController {
         userPhone.value = (await SessionManager.getUserPhone()) ?? '';
         hasSurgeonProfile.value = (await SessionManager.getSurgeonProfileFlag()) ?? false;
         hasHealthProfile.value = (await SessionManager.getHealthProfileFlag()) ?? false;
+
+        // 🔔 Re-register FCM token on session restore (handles token refresh)
+        _registerFcmTokenSilently(profileId.value, userRole.value);
       } else {
         isLoggedIn.value = false;
         userRole.value = '';
@@ -92,6 +101,9 @@ class AuthController extends GetxController {
       hasSurgeonProfile.value = surgeonProfile;
       await SessionManager.saveSurgeonProfileFlag(surgeonProfile);
     }
+
+    // 🔔 Register FCM token with backend after successful login
+    _registerFcmTokenSilently(id, role);
   }
 
   /// ✅ Legacy update state helper after a successful login
@@ -103,6 +115,9 @@ class AuthController extends GetxController {
 
   /// 🚪 Logout and clear states
   Future<void> logout() async {
+    // 🔔 Unregister FCM token before clearing session
+    await _unregisterFcmToken(profileId.value);
+
     await SessionManager.clearAll();
     isLoggedIn.value = false;
     userRole.value = '';
@@ -113,4 +128,78 @@ class AuthController extends GetxController {
     hasSurgeonProfile.value = false;
     hasHealthProfile.value = false;
   }
+
+  // ──────────────────────────────────────────────
+  // 🔔 FCM Token Management (Private Helpers)
+  // ──────────────────────────────────────────────
+
+  /// Register FCM token with backend (fire-and-forget, cached to avoid redundant network calls)
+  void _registerFcmTokenSilently(String userId, String role) {
+    if (userId.isEmpty) return;
+
+    Future(() async {
+      try {
+        final fcmToken = await NotificationService().getToken();
+        if (fcmToken == null || fcmToken.isEmpty) {
+          return;
+        }
+
+        // ✅ Check if token is already registered to avoid redundant requests
+        final lastRegisteredToken = await SessionManager.getRegisteredFcmToken();
+        if (lastRegisteredToken == fcmToken) {
+          debugPrint('🔔 FCM token is already registered with backend (cached)');
+          return;
+        }
+
+        final response = await http.post(
+          Uri.parse('${AppConfig.apiBaseUrl}/notifications/register-token'),
+          headers: {'Content-Type': 'application/json'},
+          body: jsonEncode({
+            'user_id': userId,
+            'token': fcmToken,
+            'platform': Platform.isIOS ? 'ios' : 'android',
+            'user_role': role,
+          }),
+        );
+
+        if (response.statusCode == 200) {
+          await SessionManager.saveRegisteredFcmToken(fcmToken);
+          debugPrint('🔔 FCM token successfully registered with backend and cached');
+        } else {
+          debugPrint('⚠️ FCM token registration failed: ${response.statusCode}');
+        }
+      } catch (e) {
+        debugPrint('⚠️ FCM token registration error: $e');
+      }
+    });
+  }
+
+  /// Unregister FCM token from backend on logout
+  Future<void> _unregisterFcmToken(String userId) async {
+    if (userId.isEmpty) return;
+
+    try {
+      final fcmToken = await NotificationService().getToken();
+      if (fcmToken == null || fcmToken.isEmpty) return;
+
+      final response = await http.delete(
+        Uri.parse('${AppConfig.apiBaseUrl}/notifications/unregister-token'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          'user_id': userId,
+          'token': fcmToken,
+        }),
+      );
+
+      if (response.statusCode == 200) {
+        await SessionManager.clearRegisteredFcmToken();
+        debugPrint('🔕 FCM token unregistered from backend');
+      } else {
+        debugPrint('⚠️ FCM token unregistration failed: ${response.statusCode}');
+      }
+    } catch (e) {
+      debugPrint('⚠️ FCM token unregistration error: $e');
+    }
+  }
+
 }

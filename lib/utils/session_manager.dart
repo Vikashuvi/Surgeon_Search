@@ -225,4 +225,23 @@ class SessionManager {
     final prefs = await SharedPreferences.getInstance();
     return prefs.getString('user_name');
   }
+
+  /// ✅ Save cached registered FCM token
+  static const _keyRegisteredFcmToken = 'registered_fcm_token';
+
+  static Future<void> saveRegisteredFcmToken(String token) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(_keyRegisteredFcmToken, token);
+  }
+
+  static Future<String?> getRegisteredFcmToken() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString(_keyRegisteredFcmToken);
+  }
+
+  static Future<void> clearRegisteredFcmToken() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove(_keyRegisteredFcmToken);
+  }
 }
+
