@@ -31,6 +31,9 @@ class _SplashScreenState extends State<SplashScreen> {
 
   /// ⏳ Initialize splash logic and route
   Future<void> _initApp() async {
+    // Select active server (New App 13.127.143.50:3000 OR Old App 13.203.194.88:3000)
+    await AppConfig.checkAndSelectActiveServer();
+
     // Give a short delay for splash effect
     await Future.delayed(const Duration(seconds: 2));
 

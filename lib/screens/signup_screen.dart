@@ -67,7 +67,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
 
     setState(() => isLoading = true);
 
-    const String apiUrl = "${AppConfig.apiBaseUrl}/signup";
+    final String apiUrl = "${AppConfig.apiBaseUrl}/signup";
 
     // ✅ Use MultipartRequest if image is selected, otherwise normal POST
     try {

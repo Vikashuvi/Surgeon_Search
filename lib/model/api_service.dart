@@ -7,9 +7,9 @@ import 'package:doc/utils/app_config.dart';
 
 
 class ApiService {
-  static const String baseUrl =
+  static String get baseUrl =>
       '${AppConfig.apiBaseUrl}/sugeon';
-  static const String healthcareBase =
+  static String get healthcareBase =>
       '${AppConfig.apiBaseUrl}/healthcare';
 
 
