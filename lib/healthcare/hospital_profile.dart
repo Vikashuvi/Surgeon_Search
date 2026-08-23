@@ -651,18 +651,23 @@ class _HospitalProfileState extends State<HospitalProfile> {
       // ✅ Bottom Navigation Bar
       bottomNavigationBar: widget.showBottomBar
           ? Container(
-              height: 65,
               decoration: BoxDecoration(
                 color: Colors.white,
-                border: Border(top: BorderSide(color: Colors.grey.shade300)),
+                border: Border(top: BorderSide(color: Colors.grey.shade200)),
               ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceAround,
-                children: [
-                  _bottomIcon(Iconsax.search_normal, "Search", false),
-                  _bottomIcon(Iconsax.document, "Applied Jobs", false),
-                  _bottomIcon(Iconsax.user, "Profile", true),
-                ],
+              child: SafeArea(
+                top: false,
+                child: SizedBox(
+                  height: 60,
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceAround,
+                    children: [
+                      _bottomIcon(Iconsax.search_normal, "Search", false),
+                      _bottomIcon(Iconsax.document, "Applied Jobs", false),
+                      _bottomIcon(Iconsax.user, "Profile", true),
+                    ],
+                  ),
+                ),
               ),
             )
           : null,

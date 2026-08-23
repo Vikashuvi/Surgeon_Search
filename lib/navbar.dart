@@ -80,17 +80,25 @@ class _NavbarState extends State<Navbar> {
       body: pageList[safeIndex],
 
       bottomNavigationBar: Container(
-        padding: const EdgeInsets.symmetric(vertical: 10),
-        decoration: const BoxDecoration(color: Colors.white),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceAround,
-          children: [
-            _navItem(index: 0, icon: Icons.bookmark, label: "My Jobs"),
-            _navItem(index: 1, icon: Icons.group, label: "Applicants"),
-            _navItem(index: 2, icon: Icons.add, label: "Post Job"),
-            _navItem(index: 3, icon: Icons.calendar_month, label: "Interviews"),
-            _navItem(index: 4, icon: Icons.medical_services, label: "Surgeons"),
-          ],
+        decoration: BoxDecoration(
+          color: Colors.white,
+          border: Border(top: BorderSide(color: Colors.grey.shade200)),
+        ),
+        child: SafeArea(
+          top: false,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 8),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: [
+                _navItem(index: 0, icon: Icons.bookmark, label: "My Jobs"),
+                _navItem(index: 1, icon: Icons.group, label: "Applicants"),
+                _navItem(index: 2, icon: Icons.add, label: "Post Job"),
+                _navItem(index: 3, icon: Icons.calendar_month, label: "Interviews"),
+                _navItem(index: 4, icon: Icons.medical_services, label: "Surgeons"),
+              ],
+            ),
+          ),
         ),
       ),
     );
@@ -107,6 +115,7 @@ class _NavbarState extends State<Navbar> {
     const Color unselectedColor = Color(0xFF117BDD); // Light Blue
 
     return GestureDetector(
+      behavior: HitTestBehavior.opaque,
       onTap: () => onTabSelected(index),
       child: Column(
         mainAxisSize: MainAxisSize.min,

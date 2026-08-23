@@ -819,21 +819,23 @@ void dispose() {
 @override
 Widget build(BuildContext context) {
   return Scaffold(
-    bottomNavigationBar: Container(
-      padding: const EdgeInsets.all(16),
-      color: Colors.white,
-      child: SizedBox(
-        width: double.infinity,
-        height: 50,
-        child: ElevatedButton(
-          onPressed: hasProfile ? updateProfile : createProfile,
-          style: ElevatedButton.styleFrom(
-            backgroundColor: Colors.lightBlueAccent,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-          ),
-          child: Text(
-            hasProfile ? "Update" : "Submit",
-            style: const TextStyle(color: Colors.white, fontSize: 16),
+    bottomNavigationBar: SafeArea(
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        color: Colors.white,
+        child: SizedBox(
+          width: double.infinity,
+          height: 50,
+          child: ElevatedButton(
+            onPressed: hasProfile ? updateProfile : createProfile,
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.lightBlueAccent,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            ),
+            child: Text(
+              hasProfile ? "Update" : "Submit",
+              style: const TextStyle(color: Colors.white, fontSize: 16),
+            ),
           ),
         ),
       ),

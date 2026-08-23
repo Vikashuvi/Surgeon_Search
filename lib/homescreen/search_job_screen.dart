@@ -479,52 +479,57 @@ class _SearchScreenState extends State<SearchScreen> {
       ),
 
       bottomNavigationBar: Container(
-        height: 65,
         decoration: BoxDecoration(
           color: Colors.white,
-          border: Border(top: BorderSide(color: Colors.grey.shade300)),
+          border: Border(top: BorderSide(color: Colors.grey.shade200)),
         ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceAround,
-          children: [
-            _bottomNavItem(Iconsax.search_normal, "Search", true, () {}),
-            _bottomNavItem(Icons.medical_services_outlined, "Surgeons", false, () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (_) => const SurgeonTab(showAppBar: true),
-                ),
-              );
-            }),
-            _bottomNavItem(Iconsax.document, "Applied Jobs", false, () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (_) => const AppliedJobsScreen(),
-                ),
-              );
-            }),
-            _bottomNavItem(Iconsax.user, "Profile", false, () async {
-              final profileId = await SessionManager.getProfileId();
-              if (!context.mounted) return;
-              if (profileId == null || profileId.isEmpty) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('Profile not found. Please complete your profile.'),
-                  ),
-                );
-                return;
-              }
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (_) => ProfessionalProfileViewPage(
-                    profileId: profileId,
-                  ),
-                ),
-              );
-            }),
-          ],
+        child: SafeArea(
+          top: false,
+          child: SizedBox(
+            height: 60,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: [
+                _bottomNavItem(Iconsax.search_normal, "Search", true, () {}),
+                _bottomNavItem(Icons.medical_services_outlined, "Surgeons", false, () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => const SurgeonTab(showAppBar: true),
+                    ),
+                  );
+                }),
+                _bottomNavItem(Iconsax.document, "Applied Jobs", false, () {
+                  Navigator.pushReplacement(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => const AppliedJobsScreen(),
+                    ),
+                  );
+                }),
+                _bottomNavItem(Iconsax.user, "Profile", false, () async {
+                  final profileId = await SessionManager.getProfileId();
+                  if (!context.mounted) return;
+                  if (profileId == null || profileId.isEmpty) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('Profile not found. Please complete your profile.'),
+                      ),
+                    );
+                    return;
+                  }
+                  Navigator.pushReplacement(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => ProfessionalProfileViewPage(
+                        profileId: profileId,
+                      ),
+                    ),
+                  );
+                }),
+              ],
+            ),
+          ),
         ),
       ),
     );
@@ -700,17 +705,18 @@ class _SearchScreenState extends State<SearchScreen> {
   Widget _bottomNavItem(
       IconData icon, String label, bool isActive, VoidCallback onTap) {
     return GestureDetector(
+      behavior: HitTestBehavior.opaque,
       onTap: onTap,
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(icon, color: isActive ? Colors.blue : Colors.grey, size: 22),
+          Icon(icon, color: isActive ? const Color(0xFF0062FF) : Colors.grey.shade400, size: 22),
           const SizedBox(height: 4),
           Text(
             label,
             style: GoogleFonts.poppins(
-              fontSize: 12,
-              color: isActive ? Colors.blue : Colors.grey,
+              fontSize: 11,
+              color: isActive ? const Color(0xFF0062FF) : Colors.grey.shade400,
               fontWeight: isActive ? FontWeight.w600 : FontWeight.w400,
             ),
           ),

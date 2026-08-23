@@ -1117,24 +1117,26 @@ class _JobDetailsScreenState extends State<JobDetailsScreen> {
                         ],
                       ),
                     ),
-      bottomNavigationBar: Padding(
-        padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
-        child: SizedBox(
-          height: 48,
-          child: ElevatedButton(
-            onPressed: () => _showApplyFormDialog(context),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.primary,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(10),
+      bottomNavigationBar: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+          child: SizedBox(
+            height: 48,
+            child: ElevatedButton(
+              onPressed: () => _showApplyFormDialog(context),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.primary,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10),
+                ),
               ),
-            ),
-            child: const Text(
-              'Apply Now',
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: 16,
-                fontWeight: FontWeight.w600,
+              child: const Text(
+                'Apply Now',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                ),
               ),
             ),
           ),

@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:iconsax/iconsax.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:http/http.dart' as http;
 import 'package:doc/utils/app_config.dart';
 
@@ -562,60 +563,66 @@ class _AppliedJobsScreenState extends State<AppliedJobsScreen> {
 
   Widget _buildBottomNavBar(BuildContext context) {
     return Container(
-      height: 70,
       decoration: BoxDecoration(
         color: Colors.white,
         border: Border(top: BorderSide(color: Colors.grey.shade200)),
       ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceAround,
-        children: [
-          _navItem(Iconsax.search_normal, "Search", false, () {
-             Navigator.pushReplacement(
-                context,
-                MaterialPageRoute(
-                  builder: (_) => const SearchScreen(),
-                ),
-              );
-          }),
-          _navItem(Icons.medical_services_outlined, "Surgeons", false, () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (_) => const SurgeonTab(showAppBar: true),
-              ),
-            );
-          }),
-          _navItem(Icons.bookmark, "Applied Jobs", true, () {}), // Using bookmark icon to match design closer
-          _navItem(Iconsax.user, "Profile", false, () async {
-              final messenger = ScaffoldMessenger.of(context);
-              final navigator = Navigator.of(context);
-              final profileId = await SessionManager.getProfileId();
-              if (!mounted) return;
-              if (profileId == null || profileId.isEmpty) {
-                messenger.showSnackBar(
-                  const SnackBar(
-                    content:
-                        Text('Profile not found. Please complete your profile.'),
+      child: SafeArea(
+        top: false,
+        child: SizedBox(
+          height: 60,
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            children: [
+              _navItem(Iconsax.search_normal, "Search", false, () {
+                Navigator.pushReplacement(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => const SearchScreen(),
                   ),
                 );
-                return;
-              }
-              navigator.push(
-                MaterialPageRoute(
-                  builder: (_) => ProfessionalProfileViewPage(
-                    profileId: profileId,
+              }),
+              _navItem(Icons.medical_services_outlined, "Surgeons", false, () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => const SurgeonTab(showAppBar: true),
                   ),
-                ),
-              );
-          }),
-        ],
+                );
+              }),
+              _navItem(Iconsax.document, "Applied Jobs", true, () {}),
+              _navItem(Iconsax.user, "Profile", false, () async {
+                final messenger = ScaffoldMessenger.of(context);
+                final navigator = Navigator.of(context);
+                final profileId = await SessionManager.getProfileId();
+                if (!mounted) return;
+                if (profileId == null || profileId.isEmpty) {
+                  messenger.showSnackBar(
+                    const SnackBar(
+                      content:
+                          Text('Profile not found. Please complete your profile.'),
+                    ),
+                  );
+                  return;
+                }
+                navigator.pushReplacement(
+                  MaterialPageRoute(
+                    builder: (_) => ProfessionalProfileViewPage(
+                      profileId: profileId,
+                    ),
+                  ),
+                );
+              }),
+            ],
+          ),
+        ),
       ),
     );
   }
 
   Widget _navItem(IconData icon, String label, bool isActive, VoidCallback onTap) {
     return GestureDetector(
+      behavior: HitTestBehavior.opaque,
       onTap: onTap,
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -623,15 +630,15 @@ class _AppliedJobsScreenState extends State<AppliedJobsScreen> {
           Icon(
             icon,
             color: isActive ? const Color(0xFF0062FF) : Colors.grey.shade400,
-            size: 24,
+            size: 22,
           ),
           const SizedBox(height: 4),
           Text(
             label,
-            style: TextStyle(
-              fontSize: 12,
+            style: GoogleFonts.poppins(
+              fontSize: 11,
               color: isActive ? const Color(0xFF0062FF) : Colors.grey.shade400,
-              fontWeight: isActive ? FontWeight.w600 : FontWeight.w500,
+              fontWeight: isActive ? FontWeight.w600 : FontWeight.w400,
             ),
           ),
         ],

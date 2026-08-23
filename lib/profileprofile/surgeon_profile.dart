@@ -10,6 +10,7 @@ import 'package:doc/screens/signin_screen.dart';
 import 'package:doc/homescreen/search_job_screen.dart';
 import 'package:doc/homescreen/applied_jobs.dart';
 import 'package:doc/profileprofile/surgeon_form.dart';
+import 'package:doc/admin/surgeon_tab.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:doc/controllers/auth_controller.dart';
 import 'package:get/get.dart';
@@ -563,51 +564,67 @@ class _ProfessionalProfileViewPageState
         ],
       ),
 
-      // Bottom Navigation Bar (same style as HospitalProfile)
+      // Bottom Navigation Bar (Unified with SafeArea)
       bottomNavigationBar: Container(
-        height: 65,
         decoration: BoxDecoration(
           color: Colors.white,
-          border: Border(top: BorderSide(color: Colors.grey.shade300)),
+          border: Border(top: BorderSide(color: Colors.grey.shade200)),
         ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceAround,
-          children: [
-            _bottomNavItem(
-              Iconsax.search_normal,
-              "Search",
-              false,
-              () {
-                Navigator.pushReplacement(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) => const SearchScreen(),
-                  ),
-                );
-              },
+        child: SafeArea(
+          top: false,
+          child: SizedBox(
+            height: 60,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: [
+                _bottomNavItem(
+                  Iconsax.search_normal,
+                  "Search",
+                  false,
+                  () {
+                    Navigator.pushReplacement(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => const SearchScreen(),
+                      ),
+                    );
+                  },
+                ),
+                _bottomNavItem(
+                  Icons.medical_services_outlined,
+                  "Surgeons",
+                  false,
+                  () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => const SurgeonTab(showAppBar: true),
+                      ),
+                    );
+                  },
+                ),
+                _bottomNavItem(
+                  Iconsax.document,
+                  "Applied Jobs",
+                  false,
+                  () {
+                    Navigator.pushReplacement(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => const AppliedJobsScreen(),
+                      ),
+                    );
+                  },
+                ),
+                _bottomNavItem(
+                  Iconsax.user,
+                  "Profile",
+                  true,
+                  () {},
+                ),
+              ],
             ),
-            _bottomNavItem(
-              Iconsax.document,
-              "Applied Jobs",
-              false,
-              () {
-                Navigator.pushReplacement(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) => const AppliedJobsScreen(),
-                  ),
-                );
-              },
-            ),
-            _bottomNavItem(
-              Iconsax.user,
-              "Profile",
-              true,
-              () {
-                // Already on profile; no action
-              },
-            ),
-          ],
+          ),
         ),
       ),
     );
@@ -818,21 +835,22 @@ class _ProfessionalProfileViewPageState
     }
   }
 
-  // Bottom Navigation Item (same visual style, but tappable)
+  // Bottom Navigation Item (Unified visual style)
   Widget _bottomNavItem(
       IconData icon, String label, bool isActive, VoidCallback onTap) {
     return GestureDetector(
+      behavior: HitTestBehavior.opaque,
       onTap: onTap,
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(icon, color: isActive ? Colors.blue : Colors.grey, size: 22),
+          Icon(icon, color: isActive ? const Color(0xFF0062FF) : Colors.grey.shade400, size: 22),
           const SizedBox(height: 4),
           Text(
             label,
             style: GoogleFonts.poppins(
-              fontSize: 12,
-              color: isActive ? Colors.blue : Colors.grey,
+              fontSize: 11,
+              color: isActive ? const Color(0xFF0062FF) : Colors.grey.shade400,
               fontWeight: isActive ? FontWeight.w600 : FontWeight.w400,
             ),
           ),
