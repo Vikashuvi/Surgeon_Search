@@ -23,11 +23,13 @@ void main() async {
   // Register background message handler
   FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
 
-  // Initialize push notification service
-  await NotificationService().initialize();
-
   // Initialize Global Auth State
   Get.put(AuthController());
+
+  // Initialize push notification service asynchronously (non-blocking)
+  NotificationService().initialize().catchError((e) {
+    debugPrint('⚠️ NotificationService initialization error: $e');
+  });
 
   runApp(const MyApp());
 }
