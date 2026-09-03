@@ -38,19 +38,9 @@
 			<true/>
 		</dict>
 		<key>NSCameraUsageDescription</key>
-		<string>This App need to access your camera to capture a photo add and update profile picture</string>
-		<key>NSLocalNetworkUsageDescription</key>
-		<string>This app needs local network access for development and debugging purposes.</string>
-		<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
-		<string>This app needs access to location when open and in the background.</string>
-		<key>NSLocationAlwaysUsageDescription</key>
-		<string>This app needs access to location when in the background</string>
-		<key>NSLocationWhenInUseUsageDescription</key>
-		<string>This app needs access to location for product delivery</string>
-		<key>NSMicrophoneUsageDescription</key>
-		<string>This app need to access your Microphone to capture video clip to share your trip experience</string>
+		<string>Surgeon Search requires access to your camera to take photos for your profile and hospital document uploads.</string>
 		<key>NSPhotoLibraryUsageDescription</key>
-		<string>This app need to access your photo library to select a photo add and update profile picture</string>
+		<string>Surgeon Search requires access to your photo library to select and upload profile pictures and verification documents.</string>
 		<key>UISupportedInterfaceOrientations</key>
 		<array>
 			<string>UIInterfaceOrientationPortrait</string>

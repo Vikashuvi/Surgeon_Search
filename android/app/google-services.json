@@ -38,6 +38,14 @@
           }
         },
         {
+          "client_id": "692027562141-dqomujb8q7esmgbkn24sn1dhalk3njph.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.venka.surgeonsearch",
+            "certificate_hash": "01b5bf3ad87845b55d955e95bd872a062b6ce7d6"
+          }
+        },
+        {
           "client_id": "692027562141-hj8udtqj7t51fproul8vtjgoq2376eot.apps.googleusercontent.com",
           "client_type": 1,
           "android_info": {
