@@ -21,14 +21,6 @@ android {
     compileSdk = 36
     ndkVersion = "27.0.12077973"
 
-    packaging {
-        jniLibs {
-            keepDebugSymbols.add("**/*.so")
-        }
-    }
-    packagingOptions {
-        doNotStrip("**/*.so")
-    }
 
     compileOptions {
         isCoreLibraryDesugaringEnabled = true
@@ -83,10 +75,6 @@ flutter {
 dependencies {
     coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.4")
     implementation("androidx.activity:activity-ktx:1.8.0")
-}
-
-tasks.matching { it.name.contains("strip", ignoreCase = true) && it.name.contains("DebugSymbols", ignoreCase = true) }.configureEach {
-    enabled = false
 }
 
 
