@@ -168,8 +168,10 @@ class _MyJobsPageState extends State<MyJobsPage> {
 
       if (resp.statusCode == 200) {
         final data = jsonDecode(resp.body);
-        // API returns "freetrail2month": true/false
-        final bool freeTrial = data['freetrail2month'] == true;
+        final bool freeTrial = data['hasAccess'] == true || 
+            data['freetrail1month'] == true || 
+            data['freetrail2month'] == true ||
+            data['isSubscribed'] == true;
 
         if (freeTrial) {
           // Eligible -> Go to Post Job Form
@@ -185,12 +187,12 @@ class _MyJobsPageState extends State<MyJobsPage> {
           // Not Eligible -> Show Subscription Popup
           final int amount = data['paymentAmount'] is int 
               ? data['paymentAmount'] 
-              : int.tryParse(data['paymentAmount']?.toString() ?? '0') ?? 0;
+              : int.tryParse(data['paymentAmount']?.toString() ?? '5500') ?? 5500;
           
           final String hospitalType = data['hospitalType']?.toString() ?? 'Hospital Plan';
           
-          // Construct price string, assuming 6 months as per screenshot/user
-          final String priceString = "₹${amount.toString()} for 6 months";
+          // Construct price string: ₹5500 for 1 year
+          final String priceString = "₹${amount.toString()} for 1 year";
 
           Navigator.push(
             context,

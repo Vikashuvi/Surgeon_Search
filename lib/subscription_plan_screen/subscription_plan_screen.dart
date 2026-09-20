@@ -147,7 +147,7 @@ class _SubscriptionPlanScreenState extends State<SubscriptionPlanScreen> {
                     const SizedBox(height: 6),
 
                     Text(
-                      "₹600 for 6 months",
+                      "₹1750 for 1 year",
                       style: TextStyle(
                         fontSize: 20,
                         fontWeight: FontWeight.bold,

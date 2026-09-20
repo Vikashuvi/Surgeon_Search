@@ -63,7 +63,7 @@ class HospitalSubscriptionPlanScreen extends StatelessWidget {
               buildPlanCard(
                 context: context,
                 title: "Small Hospital (<50 beds)",
-                price: "₹X,000 for 6 months",
+                price: "₹5,500 for 1 year",
               ),
 
               const SizedBox(height: 18),
@@ -71,7 +71,7 @@ class HospitalSubscriptionPlanScreen extends StatelessWidget {
               buildPlanCard(
                 context: context,
                 title: "Medium Hospital (50–100 beds)",
-                price: "₹Y,000 for 6 months",
+                price: "₹5,500 for 1 year",
               ),
 
               const SizedBox(height: 18),
@@ -79,7 +79,7 @@ class HospitalSubscriptionPlanScreen extends StatelessWidget {
               buildPlanCard(
                 context: context,
                 title: "Large Hospital (>100 beds)",
-                price: "₹Z,000 for 6 months",
+                price: "₹5,500 for 1 year",
               ),
 
               const SizedBox(height: 25),

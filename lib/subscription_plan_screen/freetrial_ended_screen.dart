@@ -44,7 +44,7 @@ class _FreeTrialEndedScreenState extends State<FreeTrialEndedScreen> {
 
       // 1. Verify payment on backend
       final verifyUrl = Uri.parse('${AppConfig.apiBaseUrl}/payment/surgeonverify');
-      await http.post(
+      final verifyResponse = await http.post(
         verifyUrl,
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({
@@ -55,7 +55,23 @@ class _FreeTrialEndedScreenState extends State<FreeTrialEndedScreen> {
         }),
       );
 
-      // 2. Mark subscription active in local session
+      // 2. Mark yearly subscription active in local session
+      if (verifyResponse.statusCode == 200) {
+        try {
+          final data = jsonDecode(verifyResponse.body);
+          final sub = data['subscription'];
+          await SessionManager.saveSubscriptionDetails(
+            isSubscribed: true,
+            startDate: sub?['startDate']?.toString(),
+            endDate: sub?['endDate']?.toString(),
+          );
+        } catch (_) {
+          await SessionManager.saveSubscriptionDetails(isSubscribed: true);
+        }
+      } else {
+        await SessionManager.saveSubscriptionDetails(isSubscribed: true);
+      }
+
       await SessionManager.saveFreeTrialFlag(true);
 
       if (!mounted) return;
@@ -182,7 +198,7 @@ class _FreeTrialEndedScreenState extends State<FreeTrialEndedScreen> {
         body: jsonEncode({
           'success': true,
           'profileId': profileId,
-          'amount': 600, // ₹600 for surgeon subscription
+          'amount': 1750, // ₹1750 for surgeon yearly subscription
         }),
       );
 
@@ -195,7 +211,7 @@ class _FreeTrialEndedScreenState extends State<FreeTrialEndedScreen> {
         final rawAmount = data['amount'];
         final int amountInPaise = rawAmount is int
             ? (rawAmount < 1000 ? rawAmount * 100 : rawAmount)
-            : int.tryParse(rawAmount?.toString() ?? '60000') ?? 60000;
+            : int.tryParse(rawAmount?.toString() ?? '175000') ?? 175000;
 
         return {
           'orderId': data['orderId'] ?? data['id'] ?? data['order_id'],
@@ -222,7 +238,7 @@ class _FreeTrialEndedScreenState extends State<FreeTrialEndedScreen> {
       'amount': orderData['amount'], // Amount in paise
       'currency': orderData['currency'] ?? 'INR',
       'name': 'Surgeon Search',
-      'description': 'Surgeon Plan - ₹600 for 6 months',
+      'description': 'Surgeon Plan - ₹1750 for 1 year',
       'order_id': orderData['orderId'],
       'prefill': {
         'contact': userPhone,
@@ -349,7 +365,7 @@ class _FreeTrialEndedScreenState extends State<FreeTrialEndedScreen> {
 
                         /// Price
                         const Text(
-                          "₹600 for 6 months",
+                          "₹1750 for 1 year",
                           style: TextStyle(
                             fontSize: 20,
                             fontWeight: FontWeight.bold,
@@ -369,7 +385,7 @@ class _FreeTrialEndedScreenState extends State<FreeTrialEndedScreen> {
 
                         /// Bullet items
                         Text(
-                          "•  Auto-renews every 6 months\n•  Cancel anytime",
+                          "•  Auto-renews every year\n•  Cancel anytime",
                           style: TextStyle(
                             fontSize: 13,
                             color: Colors.white.withValues(alpha: 0.9),

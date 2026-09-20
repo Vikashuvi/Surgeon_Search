@@ -197,7 +197,7 @@ class _HospitalFreeTrialEndedPopupState extends State<HospitalFreeTrialEndedPopu
 
                         /// Bullet items
                         Text(
-                          "•  Auto-renews every 6 months\n•  Cancel anytime",
+                          "•  Auto-renews every year\n•  Cancel anytime",
                           style: TextStyle(
                             fontSize: 13,
                             color: Colors.white.withValues(alpha: 0.9),

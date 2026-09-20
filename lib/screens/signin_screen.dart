@@ -446,13 +446,25 @@ class _LoginScreenState extends State<LoginScreen> {
       surgeonProfile: surgeonProfile,
     );
 
-    // Save free trial status directly from login response
-    if (userData is Map && userData['freetrail2month'] != null) {
-      final isFree = userData['freetrail2month'].toString().toLowerCase() == 'true';
-      await SessionManager.saveFreeTrialFlag(isFree);
-    } else if (data is Map && data['freetrail2month'] != null) {
-      final isFree = data['freetrail2month'].toString().toLowerCase() == 'true';
-      await SessionManager.saveFreeTrialFlag(isFree);
+    // Save free trial & yearly subscription status directly from login response
+    final userMap = userData is Map ? userData : (data is Map ? data : null);
+    if (userMap != null) {
+      final isSubscribed = userMap['isSubscribed'] == true || 
+          userMap['isSubscribed']?.toString().toLowerCase() == 'true';
+      final startDate = userMap['subscriptionStartDate']?.toString();
+      final endDate = userMap['subscriptionEndDate']?.toString();
+      
+      await SessionManager.saveSubscriptionDetails(
+        isSubscribed: isSubscribed,
+        startDate: startDate,
+        endDate: endDate,
+      );
+
+      final freeTrialVal = userMap['freetrail1month'] ?? userMap['freetrail2month'];
+      if (freeTrialVal != null) {
+        final isFree = freeTrialVal.toString().toLowerCase() == 'true';
+        await SessionManager.saveFreeTrialFlag(isFree);
+      }
     }
 
     if (!mounted) return;

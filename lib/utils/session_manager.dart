@@ -17,6 +17,9 @@ class SessionManager {
   static const _keyHealthProfileFlag = 'health_profile_flag';
   static const _keyFreeTrialFlag = 'free_trial_flag';
   static const _keyAdminData = 'admin_data';
+  static const _keyIsSubscribed = 'is_subscribed';
+  static const _keySubscribedDate = 'subscribed_date';
+  static const _keySubscriptionEndDate = 'subscription_end_date';
 
   /// ✅ Save the logged-in user's ID
   static Future<void> saveUserId(String userId) async {
@@ -108,6 +111,9 @@ class SessionManager {
     await prefs.remove(_keySurgeonProfileFlag);
     await prefs.remove(_keyFreeTrialFlag);
     await prefs.remove(_keyAdminData);
+    await prefs.remove(_keyIsSubscribed);
+    await prefs.remove(_keySubscribedDate);
+    await prefs.remove(_keySubscriptionEndDate);
     await prefs.remove('user_email');
     await prefs.remove('user_phone');
     await prefs.remove('user_name');
@@ -145,12 +151,59 @@ class SessionManager {
     return prefs.getBool(_keyFreeTrialFlag);
   }
 
+  /// 💳 Save yearly subscription status and dates
+  static Future<void> saveSubscriptionDetails({
+    required bool isSubscribed,
+    String? startDate,
+    String? endDate,
+  }) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(_keyIsSubscribed, isSubscribed);
+    if (startDate != null) {
+      await prefs.setString(_keySubscribedDate, startDate);
+    }
+    if (endDate != null) {
+      await prefs.setString(_keySubscriptionEndDate, endDate);
+    }
+    if (isSubscribed) {
+      await prefs.setBool(_keyFreeTrialFlag, true);
+    }
+  }
+
+  static Future<bool> getIsSubscribed() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getBool(_keyIsSubscribed) ?? false;
+  }
+
+  static Future<String?> getSubscriptionEndDate() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString(_keySubscriptionEndDate);
+  }
+
+  /// Check whether user has active access (either active trial or valid subscription)
+  static Future<bool> hasActiveAccess() async {
+    final prefs = await SharedPreferences.getInstance();
+    final isSubscribed = prefs.getBool(_keyIsSubscribed) ?? false;
+    final endDateStr = prefs.getString(_keySubscriptionEndDate);
+
+    if (isSubscribed && endDateStr != null) {
+      final endDate = DateTime.tryParse(endDateStr);
+      if (endDate != null && endDate.isAfter(DateTime.now())) {
+        return true;
+      }
+    }
+
+    final trialFlag = prefs.getBool(_keyFreeTrialFlag);
+    return trialFlag == true || trialFlag == null;
+  }
+
   static Future<void> saveAdminData(Map<String, dynamic> data) async {
     final prefs = await SharedPreferences.getInstance();
     try {
       final jsonStr = jsonEncode(data);
       await prefs.setString(_keyAdminData, jsonStr);
     } catch (e) {
+      // ignore: avoid_print
       print('Error saving admin data: $e');
     }
   }
@@ -162,6 +215,7 @@ class SessionManager {
     try {
       return jsonDecode(jsonStr) as Map<String, dynamic>;
     } catch (e) {
+      // ignore: avoid_print
       print('Error parsing admin data: $e');
       return null;
     }

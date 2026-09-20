@@ -9,14 +9,14 @@ class SubscriptionGuard {
   /// Returns true if allowed, false if blocked
   /// Automatically shows payment screen if blocked
   static Future<bool> checkPremiumAccess(BuildContext context) async {
-    final isTrialActive = await SessionManager.getFreeTrialFlag();
+    final hasAccess = await SessionManager.hasActiveAccess();
     
-    // Trial is active or not set (new user) - allow access
-    if (isTrialActive == true || isTrialActive == null) {
+    // Trial or yearly subscription is active
+    if (hasAccess) {
       return true;
     }
     
-    // Trial has expired - block and show payment
+    // Expired - block and show payment
     if (!context.mounted) return false;
     
     // Show payment screen as fullscreen dialog
@@ -28,10 +28,9 @@ class SubscriptionGuard {
       ),
     );
     
-    // User came back from payment screen
-    // Re-check status in case they paid
-    final statusAfterPayment = await SessionManager.getFreeTrialFlag();
-    return statusAfterPayment == true;
+    // User came back from payment screen - re-check access
+    final statusAfterPayment = await SessionManager.hasActiveAccess();
+    return statusAfterPayment;
   }
   
   /// Show a banner notification about trial expiry
@@ -94,8 +93,7 @@ class SubscriptionGuard {
   /// Check subscription status without showing payment screen
   /// Use this for UI decisions (show/hide features)
   static Future<bool> hasActiveSubscription() async {
-    final isTrialActive = await SessionManager.getFreeTrialFlag();
-    return isTrialActive == true || isTrialActive == null;
+    return await SessionManager.hasActiveAccess();
   }
   
   /// Show a simple dialog about trial expiry
