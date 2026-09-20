@@ -39,7 +39,7 @@ class HospitalFreeTrialScreen extends StatelessWidget {
 
               // Subtitle
               const Text(
-                "Your subscription will start after 2 months. No charge today.",
+                "Your subscription will start after 1 month. No charge today.",
                 style: TextStyle(fontSize: 14, color: Colors.black54),
               ),
 
@@ -66,7 +66,7 @@ class HospitalFreeTrialScreen extends StatelessWidget {
                 child: Column(
                   children: const [
                     Text(
-                      "Enjoy 2 months free!",
+                      "Enjoy 1 month free!",
                       style: TextStyle(
                         fontWeight: FontWeight.w700,
                         fontSize: 16,
@@ -76,7 +76,7 @@ class HospitalFreeTrialScreen extends StatelessWidget {
                     SizedBox(height: 8),
                     Text(
                       "You can explore jobs with full access.\n"
-                      "You’ll be charged only after 2 months.\n"
+                      "You’ll be charged only after 1 month.\n"
                       "Cancel anytime.",
                       textAlign: TextAlign.center,
                       style: TextStyle(

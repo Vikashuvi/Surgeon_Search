@@ -68,7 +68,7 @@ class SelectedHospitalPlanScreen extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
                     Text(
-                      "Enjoy 2 months free!",
+                      "Enjoy 1 month free!",
                       style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,

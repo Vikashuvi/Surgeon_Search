@@ -1,7 +1,7 @@
 import 'package:http/http.dart' as http;
 
 class AppConfig {
-  static const String razorpayKey = 'rzp_test_Rkot1fg7LGWcv7';
+  static const String razorpayKey = 'rzp_live_TeE1OMffqcnQCD';
 
   // Server endpoints
   static const String newServerUrl = 'http://13.127.143.50:3000';

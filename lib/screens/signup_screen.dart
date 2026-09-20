@@ -1,4 +1,4 @@
-// ignore_for_file: unused_import
+// ignore_for_file: unused_import, unused_element, unused_field
 
 import 'dart:convert';
 
@@ -587,34 +587,34 @@ class _SignUpScreenState extends State<SignUpScreen> {
                         ),
                 ),
               ),
-              const SizedBox(height: 15),
+              // const SizedBox(height: 15),
 
-              // 🔘 Google Sign In Button
-              SizedBox(
-                width: double.infinity,
-                height: 55,
-                child: OutlinedButton.icon(
-                  style: OutlinedButton.styleFrom(
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    side: const BorderSide(color: Colors.black12),
-                  ),
-                  onPressed: isLoading ? null : _handleGoogleSignIn,
-                  icon: SvgPicture.string(
-                    SignUpScreen._googleSvg,
-                    height: 22,
-                  ),
-                  label: const Text(
-                    'Continue with Google',
-                    style: TextStyle(
-                      color: Colors.black87,
-                      fontWeight: FontWeight.w600,
-                      fontSize: 16,
-                    ),
-                  ),
-                ),
-              ),
+              // // 🔘 Google Sign In Button (Temporarily commented for future use)
+              // SizedBox(
+              //   width: double.infinity,
+              //   height: 55,
+              //   child: OutlinedButton.icon(
+              //     style: OutlinedButton.styleFrom(
+              //       shape: RoundedRectangleBorder(
+              //         borderRadius: BorderRadius.circular(10),
+              //       ),
+              //       side: const BorderSide(color: Colors.black12),
+              //     ),
+              //     onPressed: isLoading ? null : _handleGoogleSignIn,
+              //     icon: SvgPicture.string(
+              //       SignUpScreen._googleSvg,
+              //       height: 22,
+              //     ),
+              //     label: const Text(
+              //       'Continue with Google',
+              //       style: TextStyle(
+              //         color: Colors.black87,
+              //         fontWeight: FontWeight.w600,
+              //         fontSize: 16,
+              //       ),
+              //     ),
+              //   ),
+              // ),
               const SizedBox(height: 20),
 
               // 🔹 Sign In link

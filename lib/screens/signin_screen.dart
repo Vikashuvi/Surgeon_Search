@@ -1,3 +1,4 @@
+// ignore_for_file: unused_element, unused_field, unused_import
 import 'dart:convert';
 import 'dart:async';
 import 'dart:io';
@@ -445,6 +446,15 @@ class _LoginScreenState extends State<LoginScreen> {
       surgeonProfile: surgeonProfile,
     );
 
+    // Save free trial status directly from login response
+    if (userData is Map && userData['freetrail2month'] != null) {
+      final isFree = userData['freetrail2month'].toString().toLowerCase() == 'true';
+      await SessionManager.saveFreeTrialFlag(isFree);
+    } else if (data is Map && data['freetrail2month'] != null) {
+      final isFree = data['freetrail2month'].toString().toLowerCase() == 'true';
+      await SessionManager.saveFreeTrialFlag(isFree);
+    }
+
     if (!mounted) return;
     ScaffoldMessenger.of(
       context,
@@ -826,47 +836,47 @@ class _LoginScreenState extends State<LoginScreen> {
                             ),
                     ),
                   ),
-                  const SizedBox(height: 20),
+                  // const SizedBox(height: 20),
 
-                  // 🔹 OR divider
-                  const Row(
-                    children: [
-                      Expanded(child: Divider(color: Colors.black12)),
-                      Padding(
-                        padding: EdgeInsets.symmetric(horizontal: 10),
-                        child: Text("OR", style: TextStyle(color: Colors.grey, fontSize: 12)),
-                      ),
-                      Expanded(child: Divider(color: Colors.black12)),
-                    ],
-                  ),
-                  const SizedBox(height: 20),
+                  // // 🔹 OR divider (Temporarily commented for future use)
+                  // const Row(
+                  //   children: [
+                  //     Expanded(child: Divider(color: Colors.black12)),
+                  //     Padding(
+                  //       padding: EdgeInsets.symmetric(horizontal: 10),
+                  //       child: Text("OR", style: TextStyle(color: Colors.grey, fontSize: 12)),
+                  //     ),
+                  //     Expanded(child: Divider(color: Colors.black12)),
+                  //   ],
+                  // ),
+                  // const SizedBox(height: 20),
 
-                  // 🔘 Google Sign In Button
-                  SizedBox(
-                    width: double.infinity,
-                    height: 55,
-                    child: OutlinedButton.icon(
-                      style: OutlinedButton.styleFrom(
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        side: const BorderSide(color: Colors.black12),
-                      ),
-                      onPressed: _isLoading ? null : _handleGoogleSignIn,
-                      icon: SvgPicture.string(
-                        LoginScreen._googleSvg,
-                        height: 22,
-                      ),
-                      label: const Text(
-                        'Continue with Google',
-                        style: TextStyle(
-                          color: Colors.black87,
-                          fontWeight: FontWeight.w600,
-                          fontSize: 16,
-                        ),
-                      ),
-                    ),
-                  ),
+                  // // 🔘 Google Sign In Button (Temporarily commented for future use)
+                  // SizedBox(
+                  //   width: double.infinity,
+                  //   height: 55,
+                  //   child: OutlinedButton.icon(
+                  //     style: OutlinedButton.styleFrom(
+                  //       shape: RoundedRectangleBorder(
+                  //         borderRadius: BorderRadius.circular(10),
+                  //       ),
+                  //       side: const BorderSide(color: Colors.black12),
+                  //     ),
+                  //     onPressed: _isLoading ? null : _handleGoogleSignIn,
+                  //     icon: SvgPicture.string(
+                  //       LoginScreen._googleSvg,
+                  //       height: 22,
+                  //     ),
+                  //     label: const Text(
+                  //       'Continue with Google',
+                  //       style: TextStyle(
+                  //         color: Colors.black87,
+                  //         fontWeight: FontWeight.w600,
+                  //         fontSize: 16,
+                  //       ),
+                  //     ),
+                  //   ),
+                  // ),
                   const SizedBox(height: 20),
 
                   // 🔗 Sign Up Link
