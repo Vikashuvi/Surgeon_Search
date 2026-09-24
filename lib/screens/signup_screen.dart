@@ -587,34 +587,46 @@ class _SignUpScreenState extends State<SignUpScreen> {
                         ),
                 ),
               ),
-              // const SizedBox(height: 15),
-
-              // // 🔘 Google Sign In Button (Temporarily commented for future use)
-              // SizedBox(
-              //   width: double.infinity,
-              //   height: 55,
-              //   child: OutlinedButton.icon(
-              //     style: OutlinedButton.styleFrom(
-              //       shape: RoundedRectangleBorder(
-              //         borderRadius: BorderRadius.circular(10),
-              //       ),
-              //       side: const BorderSide(color: Colors.black12),
-              //     ),
-              //     onPressed: isLoading ? null : _handleGoogleSignIn,
-              //     icon: SvgPicture.string(
-              //       SignUpScreen._googleSvg,
-              //       height: 22,
-              //     ),
-              //     label: const Text(
-              //       'Continue with Google',
-              //       style: TextStyle(
-              //         color: Colors.black87,
-              //         fontWeight: FontWeight.w600,
-              //         fontSize: 16,
-              //       ),
-              //     ),
-              //   ),
-              // ),
+              // 🔘 Google Sign In (Android Only)
+              if (!kIsWeb && Platform.isAndroid) ...[
+                const SizedBox(height: 20),
+                const Row(
+                  children: [
+                    Expanded(child: Divider(color: Colors.black12)),
+                    Padding(
+                      padding: EdgeInsets.symmetric(horizontal: 10),
+                      child: Text("OR", style: TextStyle(color: Colors.grey, fontSize: 12)),
+                    ),
+                    Expanded(child: Divider(color: Colors.black12)),
+                  ],
+                ),
+                const SizedBox(height: 20),
+                SizedBox(
+                  width: double.infinity,
+                  height: 55,
+                  child: OutlinedButton.icon(
+                    style: OutlinedButton.styleFrom(
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      side: const BorderSide(color: Colors.black12),
+                    ),
+                    onPressed: isLoading ? null : _handleGoogleSignIn,
+                    icon: SvgPicture.string(
+                      SignUpScreen._googleSvg,
+                      height: 22,
+                    ),
+                    label: const Text(
+                      'Continue with Google',
+                      style: TextStyle(
+                        color: Colors.black87,
+                        fontWeight: FontWeight.w600,
+                        fontSize: 16,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
               const SizedBox(height: 20),
 
               // 🔹 Sign In link
