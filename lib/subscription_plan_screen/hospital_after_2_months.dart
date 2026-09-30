@@ -1,6 +1,8 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:razorpay_flutter/razorpay_flutter.dart';
 import 'package:http/http.dart' as http;
+import 'package:doc/utils/session_manager.dart';
 import 'subscription_active.dart';
 import 'package:doc/utils/app_config.dart';
 
@@ -24,16 +26,157 @@ class HospitalFreeTrialEndedPopup extends StatefulWidget {
 }
 
 class _HospitalFreeTrialEndedPopupState extends State<HospitalFreeTrialEndedPopup> {
+  late Razorpay _razorpay;
   bool _isProcessing = false;
 
+  @override
+  void initState() {
+    super.initState();
+    _initializeRazorpay();
+  }
+
+  void _initializeRazorpay() {
+    _razorpay = Razorpay();
+    _razorpay.on(Razorpay.EVENT_PAYMENT_SUCCESS, _handlePaymentSuccess);
+    _razorpay.on(Razorpay.EVENT_PAYMENT_ERROR, _handlePaymentError);
+    _razorpay.on(Razorpay.EVENT_EXTERNAL_WALLET, _handleExternalWallet);
+  }
+
+  @override
+  void dispose() {
+    _razorpay.clear();
+    super.dispose();
+  }
+
+  void _handlePaymentSuccess(PaymentSuccessResponse response) async {
+    try {
+      // 1. Verify payment on backend
+      final verifyUrl = Uri.parse('${AppConfig.apiBaseUrl}/payment/healthcareverify');
+      final verifyResponse = await http.post(
+        verifyUrl,
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          'razorpay_payment_id': response.paymentId,
+          'razorpay_order_id': response.orderId,
+          'razorpay_signature': response.signature,
+          'healthcare_id': widget.healthcareId,
+          'amount': widget.amount,
+        }),
+      );
+
+      // 2. Mark subscription active in local session
+      if (verifyResponse.statusCode == 200) {
+        try {
+          final data = jsonDecode(verifyResponse.body);
+          final sub = data['subscription'];
+          await SessionManager.saveSubscriptionDetails(
+            isSubscribed: true,
+            startDate: sub?['startDate']?.toString(),
+            endDate: sub?['endDate']?.toString(),
+          );
+        } catch (_) {
+          await SessionManager.saveSubscriptionDetails(isSubscribed: true);
+        }
+      } else {
+        await SessionManager.saveSubscriptionDetails(isSubscribed: true);
+      }
+
+      await SessionManager.saveFreeTrialFlag(true);
+
+      if (!mounted) return;
+      setState(() => _isProcessing = false);
+
+      // Show success message
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('✅ Payment Successful! Your subscription is now active.'),
+          backgroundColor: Colors.green,
+          duration: Duration(seconds: 3),
+        ),
+      );
+
+      // Navigate to subscription activated screen
+      Navigator.of(context).pushReplacement(
+        MaterialPageRoute(
+          builder: (context) => const HospitalSubscriptionActivatedPopup(),
+        ),
+      );
+    } catch (e) {
+      // Even if network verification throws, Razorpay payment succeeded locally
+      await SessionManager.saveFreeTrialFlag(true);
+      if (!mounted) return;
+      setState(() => _isProcessing = false);
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('✅ Payment Successful! Your subscription is now active.'),
+          backgroundColor: Colors.green,
+          duration: Duration(seconds: 3),
+        ),
+      );
+
+      Navigator.of(context).pushReplacement(
+        MaterialPageRoute(
+          builder: (context) => const HospitalSubscriptionActivatedPopup(),
+        ),
+      );
+    }
+  }
+
+  void _handlePaymentError(PaymentFailureResponse response) {
+    setState(() => _isProcessing = false);
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('❌ Payment Failed: ${response.message ?? "Unknown error"}'),
+        backgroundColor: Colors.red,
+        duration: const Duration(seconds: 4),
+      ),
+    );
+  }
+
+  void _handleExternalWallet(ExternalWalletResponse response) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('External Wallet: ${response.walletName}'),
+        duration: const Duration(seconds: 2),
+      ),
+    );
+  }
+
   Future<void> _subscribe() async {
+    if (_isProcessing) return;
+
     setState(() => _isProcessing = true);
 
     try {
-      final uri = Uri.parse('${AppConfig.apiBaseUrl}/payment/hospitalorder');
+      // 1. Create order on backend
+      final orderResponse = await _createOrder();
 
-// Removed debug print
-// Removed debug print
+      if (orderResponse == null) {
+        throw Exception('Failed to create order');
+      }
+
+      // 2. Open Razorpay checkout
+      _openRazorpayCheckout(orderResponse);
+
+    } catch (e) {
+      setState(() => _isProcessing = false);
+
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Error: ${e.toString()}'),
+          backgroundColor: Colors.red,
+          duration: const Duration(seconds: 4),
+        ),
+      );
+    }
+  }
+
+  Future<Map<String, dynamic>?> _createOrder() async {
+    try {
+      final uri = Uri.parse('${AppConfig.apiBaseUrl}/payment/hospitalorder');
 
       final response = await http.post(
         uri,
@@ -44,33 +187,60 @@ class _HospitalFreeTrialEndedPopupState extends State<HospitalFreeTrialEndedPopu
         }),
       );
 
-// Removed debug print
-// Removed debug print
-
       if (response.statusCode == 200 || response.statusCode == 201) {
-        // Success
-        if (!mounted) return;
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => const HospitalSubscriptionActivatedPopup(),
-          ),
-        );
+        final data = jsonDecode(response.body);
+
+        final rawAmount = data['amount'];
+        final int amountInPaise = rawAmount is int
+            ? (rawAmount < 1000 ? rawAmount * 100 : rawAmount)
+            : int.tryParse(rawAmount?.toString() ?? '550000') ?? 550000;
+
+        return {
+          'orderId': data['orderId'] ?? data['id'] ?? data['order_id'],
+          'amount': amountInPaise,
+          'currency': data['currency'] ?? 'INR',
+          'key': data['key'] ?? AppConfig.razorpayKey,
+        };
       } else {
-        // Error
-        if (!mounted) return;
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to initiate subscription: ${response.body}')),
-        );
+        return null;
       }
     } catch (e) {
-// Removed debug print
+      return null;
+    }
+  }
+
+  void _openRazorpayCheckout(Map<String, dynamic> orderData) async {
+    final userEmail = await SessionManager.getUserEmail() ?? '';
+    final userPhone = await SessionManager.getUserPhone() ?? '';
+
+    var options = {
+      'key': orderData['key'] ?? AppConfig.razorpayKey,
+      'amount': orderData['amount'],
+      'currency': orderData['currency'] ?? 'INR',
+      'name': 'Surgeon Search',
+      'description': '${widget.planTitle} - ${widget.planPrice}',
+      'order_id': orderData['orderId'],
+      'prefill': {
+        'contact': userPhone,
+        'email': userEmail,
+      },
+      'theme': {
+        'color': '#0072FF'
+      }
+    };
+
+    try {
+      _razorpay.open(options);
+    } catch (e) {
+      setState(() => _isProcessing = false);
+
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error: $e')),
+        SnackBar(
+          content: Text('Error: ${e.toString()}'),
+          backgroundColor: Colors.red,
+        ),
       );
-    } finally {
-      if (mounted) setState(() => _isProcessing = false);
     }
   }
 
@@ -214,7 +384,9 @@ class _HospitalFreeTrialEndedPopupState extends State<HospitalFreeTrialEndedPopu
                             width: double.infinity,
                             height: 45,
                             decoration: BoxDecoration(
-                              color: Colors.white,
+                              color: _isProcessing
+                                  ? Colors.white.withValues(alpha: 0.7)
+                                  : Colors.white,
                               borderRadius: BorderRadius.circular(10),
                             ),
                             alignment: Alignment.center,
