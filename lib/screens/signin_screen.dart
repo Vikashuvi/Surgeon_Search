@@ -21,6 +21,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:doc/controllers/auth_controller.dart';
 import 'package:flutter/foundation.dart';
+import 'package:doc/subscription_plan_screen/hospital_after_2_months.dart';
 
 
 class LoginScreen extends StatefulWidget {
@@ -565,6 +566,54 @@ class _LoginScreenState extends State<LoginScreen> {
 
             final navHospitalData = Map<String, dynamic>.from(mapPayload);
             navHospitalData['healthcare_id'] = healthcareId;
+
+            // ── Check hospital subscription/trial at login ──
+            try {
+              final eligUrl = Uri.parse(
+                  '${AppConfig.apiBaseUrl}/healthcare/job-posteligible/$healthcareId');
+              final eligResp = await http.get(eligUrl).timeout(const Duration(seconds: 10));
+
+              if (eligResp.statusCode == 200) {
+                final eligData = jsonDecode(eligResp.body);
+                final bool hasAccess = eligData['hasAccess'] == true;
+                final bool isSubscribed = eligData['isSubscribed'] == true;
+                final int paymentAmount = eligData['paymentAmount'] ?? 5500;
+
+                // Save subscription info locally
+                await SessionManager.saveSubscriptionDetails(
+                  isSubscribed: isSubscribed,
+                  startDate: eligData['subscriptionStartDate']?.toString(),
+                  endDate: eligData['subscriptionEndDate']?.toString(),
+                );
+
+                final freeTrialVal = eligData['freetrail1month'] ?? eligData['freetrail2month'];
+                if (freeTrialVal != null) {
+                  await SessionManager.saveFreeTrialFlag(
+                    freeTrialVal.toString().toLowerCase() == 'true',
+                  );
+                }
+
+                if (!hasAccess) {
+                  // Trial ended & not subscribed → show payment screen
+                  if (!mounted) return;
+                  Navigator.pushReplacement(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => HospitalFreeTrialEndedPopup(
+                        planTitle: 'Hospital Yearly Plan',
+                        planPrice: '₹$paymentAmount/year',
+                        amount: paymentAmount,
+                        healthcareId: healthcareId!,
+                      ),
+                    ),
+                  );
+                  return;
+                }
+              }
+            } catch (e) {
+              debugPrint('⚠️ Eligibility check failed at login: $e');
+              // If eligibility check fails, let the user through to Navbar
+            }
 
             if (!mounted) return;
             Navigator.pushReplacement(
