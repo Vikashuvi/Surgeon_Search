@@ -5,6 +5,7 @@ import 'package:http/http.dart' as http;
 import 'package:doc/utils/session_manager.dart';
 import 'subscription_active.dart';
 import 'package:doc/utils/app_config.dart';
+import 'package:doc/subscription_plan_screen/hospital_subscription_plan_screen.dart';
 
 
 class HospitalFreeTrialEndedPopup extends StatefulWidget {
@@ -415,7 +416,14 @@ class _HospitalFreeTrialEndedPopupState extends State<HospitalFreeTrialEndedPopu
 
                   /// Change plan
                   GestureDetector(
-                    onTap: () => Navigator.pop(context),
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => const HospitalSubscriptionPlanScreen(),
+                        ),
+                      );
+                    },
                     child: Padding(
                       padding: const EdgeInsets.only(top: 18),
                       child: const Text(
